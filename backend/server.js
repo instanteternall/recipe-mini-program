@@ -416,8 +416,19 @@ app.post('/api/nutrition/analyze', async (req, res) => {
 
 // WeChat login
 app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        code: 400,
+        message: '缺少code参数',
+      });
+    }
+
+    const WECHAT_APPID = process.env.WECHAT_APPID;
     const WECHAT_SECRET = process.env.WECHAT_SECRET;
-    
+
     if (!WECHAT_APPID || !WECHAT_SECRET) {
       return res.status(500).json({
         code: 500,
