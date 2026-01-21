@@ -413,9 +413,9 @@ app.post('/api/nutrition/analyze', async (req, res) => {
     handleApiError(error, res, 'Nutrition analysis');
   }
 });
-    }
-    
-    const WECHAT_APPID = process.env.WECHAT_APPID;
+
+// WeChat login
+app.post('/api/auth/login', async (req, res) => {
     const WECHAT_SECRET = process.env.WECHAT_SECRET;
     
     if (!WECHAT_APPID || !WECHAT_SECRET) {
