@@ -1,0 +1,119 @@
+<!-- pages/menu-detail/menu-detail.wxml -->
+<view class="container">
+  <!-- 菜单头部信息 -->
+  <view class="menu-header" wx:if="{{menu}}">
+    <view class="menu-info">
+      <text class="menu-name">{{menu.name}}</text>
+      <view class="menu-meta">
+        <text>{{menu.recipes.length}}道菜</text>
+        <text>创建时间：{{menu.createdAt.split('T')[0]}}</text>
+      </view>
+    </view>
+    
+    <view class="menu-actions">
+      <button class="btn-action" bindtap="editMenu">编辑</button>
+      <button class="btn-action" bindtap="duplicateMenu">复制</button>
+      <button class="btn-action danger" bindtap="deleteMenu">删除</button>
+    </view>
+  </view>
+
+  <!-- 营养信息概览 -->
+  <view class="nutrition-overview" wx:if="{{totalNutrition}}">
+    <view class="overview-header">
+      <text class="title">营养概览</text>
+      <text class="subtitle">每人份营养信息</text>
+    </view>
+    
+    <view class="nutrition-grid">
+      <view class="nutrition-item">
+        <text class="value">{{totalNutrition.calories}}</text>
+        <text class="unit">kcal</text>
+        <text class="label">卡路里</text>
+      </view>
+      <view class="nutrition-item">
+        <text class="value">{{totalNutrition.protein}}</text>
+        <text class="unit">g</text>
+        <text class="label">蛋白质</text>
+      </view>
+      <view class="nutrition-item">
+        <text class="value">{{totalNutrition.carbs}}</text>
+        <text class="unit">g</text>
+        <text class="label">碳水</text>
+      </view>
+      <view class="nutrition-item">
+        <text class="value">{{totalNutrition.fat}}</text>
+        <text class="unit">g</text>
+        <text class="label">脂肪</text>
+      </view>
+    </view>
+
+    <!-- 营养分析 -->
+    <view class="nutrition-analysis" wx:if="{{nutritionAnalysis.recommendations.length > 0}}">
+      <text class="analysis-title">营养建议</text>
+      <view class="recommendations">
+        <text wx:for="{{nutritionAnalysis.recommendations}}" wx:key="*this" class="recommendation">
+          • {{item}}
+        </text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 菜谱列表 -->
+  <view class="recipes-section" wx:if="{{menu}}">
+    <view class="section-header">
+      <text class="title">菜谱列表</text>
+      <text class="count">{{menu.recipes.length}}道菜</text>
+    </view>
+    
+    <view class="recipes-list">
+      <view 
+        class="recipe-item" 
+        wx:for="{{menu.recipes}}" 
+        wx:key="id"
+      >
+        <image src="{{item.image}}" mode="aspectFill" class="recipe-image" />
+        <view class="recipe-content">
+          <view class="recipe-header">
+            <text class="recipe-title">{{item.title}}</text>
+            <view class="recipe-actions">
+              <button class="btn-small" bindtap="viewRecipeDetail" data-id="{{item.id}}">查看</button>
+              <button class="btn-small danger" bindtap="removeRecipeFromMenu" data-id="{{item.id}}">移除</button>
+            </view>
+          </view>
+          
+          <view class="recipe-meta">
+            <text class="meta-item">🕒 {{item.readyInMinutes}}分钟</text>
+            <text class="meta-item">👥 {{item.servings}}人份</text>
+            <text class="meta-item">🔥 {{item.nutrition.calories}}kcal</text>
+          </view>
+          
+          <view class="recipe-tags" wx:if="{{item.tags && item.tags.length > 0}}">
+            <text 
+              class="tag" 
+              wx:for="{{item.tags.slice(0, 3)}}" 
+              wx:key="*this"
+            >{{item}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar" wx:if="{{menu}}">
+    <button class="btn-secondary" bindtap="generateShoppingList">🛒 购物清单</button>
+    <button class="btn-primary" bindtap="startCooking">👨‍🍳 开始烹饪</button>
+    <button class="btn-secondary" bindtap="shareMenu">📤 分享菜单</button>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{!loading && !menu}}">
+    <text>菜单不存在或已删除</text>
+    <button bindtap="goBack">返回</button>
+  </view>
+</view>

@@ -1,0 +1,42 @@
+<!-- pages/index/index.wxml -->
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar" bindtap="goToSearch">
+    <icon type="search" size="16" color="#999" />
+    <text class="placeholder">搜索菜谱、食材...</text>
+  </view>
+
+  <!-- 分类导航 -->
+  <view class="categories">
+    <view class="category-item" wx:for="{{categories}}" wx:key="id" bindtap="goToCategory" data-id="{{item.id}}">
+      <image src="{{item.icon}}" mode="aspectFit" />
+      <text>{{item.name}}</text>
+    </view>
+  </view>
+
+  <!-- 精选菜谱 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="title">今日推荐</text>
+      <text class="more" bindtap="goToSearch">更多 ></text>
+    </view>
+    
+    <view class="recipe-grid">
+      <view class="recipe-card" wx:for="{{featuredRecipes}}" wx:key="id" bindtap="goToRecipeDetail" data-id="{{item.id}}">
+        <image src="{{item.image}}" mode="aspectFill" class="recipe-image" />
+        <view class="recipe-info">
+          <text class="name">{{item.title}}</text>
+          <view class="meta">
+            <text class="time">{{item.readyInMinutes}}分钟</text>
+            <text class="calories">{{item.nutrition.calories}}kcal</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

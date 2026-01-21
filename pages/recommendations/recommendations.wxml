@@ -1,0 +1,67 @@
+<!-- pages/recommendations/recommendations.wxml -->
+<view class="container">
+  <!-- 类别选择 -->
+  <scroll-view class="category-tabs" scroll-x>
+    <view 
+      class="category-tab {{activeCategory === item.id ? 'active' : ''}}" 
+      wx:for="{{categories}}" 
+      wx:key="id"
+      bindtap="switchCategory"
+      data-id="{{item.id}}"
+    >
+      <text class="tab-icon">{{item.icon}}</text>
+      <text class="tab-name">{{item.name}}</text>
+    </view>
+  </scroll-view>
+
+  <!-- 推荐列表 -->
+  <view class="recommendations-list">
+    <view 
+      class="recommendation-card" 
+      wx:for="{{recommendations}}" 
+      wx:key="id"
+    >
+      <image src="{{item.image}}" mode="aspectFill" class="recipe-image" />
+      
+      <view class="card-content">
+        <view class="recipe-header">
+          <text class="recipe-title">{{item.title}}</text>
+          <view class="recipe-actions">
+            <button class="btn-favorite" bindtap="addToFavorites" data-recipe="{{item}}">❤️</button>
+            <button class="btn-detail" bindtap="viewRecipeDetail" data-id="{{item.id}}">查看</button>
+          </view>
+        </view>
+        
+        <view class="recipe-meta">
+          <text class="meta-item">🕒 {{item.readyInMinutes}}分钟</text>
+          <text class="meta-item">🔥 {{item.nutrition.calories}}kcal</text>
+        </view>
+        
+        <view class="recipe-tags" wx:if="{{item.tags}}">
+          <text class="tag" wx:for="{{item.tags}}" wx:key="*this">{{item}}</text>
+        </view>
+        
+        <view class="recommendation-reason">
+          <text class="reason-text">{{item.reason}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作栏 -->
+  <view class="action-bar">
+    <button class="btn-secondary" bindtap="setPreferences">⚙️ 设置偏好</button>
+    <button class="btn-primary" bindtap="refreshRecommendations">🔄 换一批</button>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{recommendations.length === 0 && !loading}}">
+    <text class="empty-text">暂无推荐内容</text>
+    <text class="empty-hint">尝试切换其他类别</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>为你推荐中...</text>
+  </view>
+</view>

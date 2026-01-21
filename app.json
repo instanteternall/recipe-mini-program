@@ -1,0 +1,66 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/search/search",
+    "pages/recipe-detail/recipe-detail",
+    "pages/menu-create/menu-create",
+    "pages/menu-detail/menu-detail",
+    "pages/favorites/favorites",
+    "pages/history/history",
+    "pages/profile/profile",
+    "pages/menu-planner/menu-planner",
+    "pages/nutrition-analyzer/nutrition-analyzer",
+    "pages/shopping-list/shopping-list",
+    "pages/recommendations/recommendations",
+    "pages/offline/offline"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "美食助手",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f5f5f5"
+  },
+  "tabBar": {
+    "color": "#999",
+    "selectedColor": "#333",
+    "backgroundColor": "#fff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "发现",
+        "iconPath": "images/tabbar/home.png",
+        "selectedIconPath": "images/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/search/search",
+        "text": "搜索",
+        "iconPath": "images/tabbar/search.png",
+        "selectedIconPath": "images/tabbar/search-active.png"
+      },
+      {
+        "pagePath": "pages/menu-planner/menu-planner",
+        "text": "菜单",
+        "iconPath": "images/tabbar/menu.png",
+        "selectedIconPath": "images/tabbar/menu-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/tabbar/profile.png",
+        "selectedIconPath": "images/tabbar/profile-active.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于推荐附近的美食"
+    }
+  },
+  "requiredBackgroundModes": ["audio", "location"],
+  "networkTimeout": {
+    "request": 60000,
+    "downloadFile": 60000
+  },
+  "debug": false
+}

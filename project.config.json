@@ -1,0 +1,11 @@
+{
+  "miniprogramRoot": "./",
+  "projectname": "recipe-mini-program",
+  "description": "美食助手 - 智能菜谱搜索和菜单规划工具",
+  "appid": "your-wechat-appid-here",
+  "projectname": "recipe-mini-program",
+  "simulatorType": "wechat",
+  "simulatorPluginLibVersion": {},
+  "condition": {},
+  "editorconfig": {}
+}

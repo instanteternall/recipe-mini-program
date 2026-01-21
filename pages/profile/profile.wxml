@@ -1,0 +1,109 @@
+<!-- pages/profile/profile.wxml -->
+<view class="container">
+  <!-- 用户信息卡片 -->
+  <view class="user-card" wx:if="{{isLoggedIn && userInfo}}">
+    <image src="{{userInfo.avatarUrl}}" mode="aspectFill" class="avatar" />
+    <view class="user-info">
+      <text class="nickname">{{userInfo.nickName}}</text>
+      <text class="login-status">已登录</text>
+    </view>
+    <button class="btn-logout" bindtap="logout">退出登录</button>
+  </view>
+
+  <!-- 登录提示 -->
+  <view class="login-prompt" wx:if="{{!isLoggedIn}}">
+    <text class="prompt-text">登录后可同步数据到云端</text>
+    <button class="btn-login" bindtap="login">微信登录</button>
+  </view>
+
+  <!-- 用户统计 -->
+  <view class="stats-section">
+    <view class="stat-item" bindtap="goToFavorites">
+      <text class="stat-number">{{userStats.favoritesCount}}</text>
+      <text class="stat-label">收藏菜谱</text>
+    </view>
+    <view class="stat-item" bindtap="goToMenus">
+      <text class="stat-number">{{userStats.menusCount}}</text>
+      <text class="stat-label">我的菜单</text>
+    </view>
+    <view class="stat-item" bindtap="goToHistory">
+      <text class="stat-number">{{userStats.searchHistoryCount}}</text>
+      <text class="stat-label">搜索历史</text>
+    </view>
+  </view>
+
+  <!-- 偏好设置 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">饮食偏好</text>
+      <text class="edit-btn" bindtap="editPreferences">编辑</text>
+    </view>
+    
+    <view class="preferences-list">
+      <view class="preference-item">
+        <text class="preference-label">饮食限制</text>
+        <text class="preference-value">
+          {{preferences.dietaryRestrictions.length > 0 ? preferences.dietaryRestrictions.join('、') : '无'}}
+        </text>
+      </view>
+      
+      <view class="preference-item">
+        <text class="preference-label">过敏原</text>
+        <text class="preference-value">
+          {{preferences.allergies.length > 0 ? preferences.allergies.join('、') : '无'}}
+        </text>
+      </view>
+      
+      <view class="preference-item">
+        <text class="preference-label">偏好菜系</text>
+        <text class="preference-value">
+          {{preferences.preferredCuisines.length > 0 ? preferences.preferredCuisines.join('、') : '无'}}
+        </text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 设置 -->
+  <view class="section">
+    <view class="section-title">设置</view>
+    
+    <view class="settings-list">
+      <view class="setting-item">
+        <text class="setting-label">推送通知</text>
+        <switch checked="{{settings.notifications}}" bindchange="toggleSetting" data-key="notifications" />
+      </view>
+      
+      <view class="setting-item">
+        <text class="setting-label">自动保存</text>
+        <switch checked="{{settings.autoSave}}" bindchange="toggleSetting" data-key="autoSave" />
+      </view>
+      
+      <view class="setting-item">
+        <text class="setting-label">离线模式</text>
+        <switch checked="{{settings.offlineMode}}" bindchange="toggleSetting" data-key="offlineMode" />
+      </view>
+    </view>
+  </view>
+
+  <!-- 其他功能 -->
+  <view class="section">
+    <view class="section-title">其他</view>
+    
+    <view class="menu-list">
+      <view class="menu-item" bindtap="clearCache">
+        <text class="menu-text">清除缓存</text>
+        <icon type="right" size="14" color="#ccc" />
+      </view>
+      
+      <view class="menu-item" bindtap="feedback">
+        <text class="menu-text">意见反馈</text>
+        <icon type="right" size="14" color="#ccc" />
+      </view>
+      
+      <view class="menu-item" bindtap="about">
+        <text class="menu-text">关于我们</text>
+        <icon type="right" size="14" color="#ccc" />
+      </view>
+    </view>
+  </view>
+</view>

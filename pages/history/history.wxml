@@ -1,0 +1,106 @@
+<!-- pages/history/history.wxml -->
+<view class="container">
+  <!-- 头部操作栏 -->
+  <view class="header-bar">
+    <text class="title">搜索历史</text>
+    <view class="header-actions">
+      <button class="btn-icon" bindtap="showStats">📊</button>
+      <button class="btn-icon" bindtap="exportHistory">📤</button>
+      <button class="btn-icon" bindtap="clearAllHistory">🗑️</button>
+    </view>
+  </view>
+
+  <!-- 分组选项 -->
+  <view class="group-bar">
+    <text class="group-label">分组：</text>
+    <view class="group-options">
+      <button 
+        class="group-btn {{groupBy === 'none' ? 'active' : ''}}" 
+        bindtap="changeGroupBy" 
+        data-group="none"
+      >
+        无分组
+      </button>
+      <button 
+        class="group-btn {{groupBy === 'day' ? 'active' : ''}}" 
+        bindtap="changeGroupBy" 
+        data-group="day"
+      >
+        按日期
+      </button>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <icon type="search" size="16" color="#999" />
+    <input 
+      type="text" 
+      placeholder="搜索历史记录" 
+      value="{{searchQuery}}" 
+      bindinput="onSearchInput"
+    />
+  </view>
+
+  <!-- 历史记录列表 -->
+  <view class="history-list">
+    <!-- 无分组模式 -->
+    <view wx:if="{{groupBy === 'none'}}">
+      <view 
+        class="history-item" 
+        wx:for="{{filteredHistory}}" 
+        wx:key="*this"
+      >
+        <view class="history-content" bindtap="searchHistoryItem" data-keyword="{{item.keyword}}">
+          <text class="keyword">{{item.keyword}}</text>
+          <text class="timestamp">{{new Date(item.timestamp).toLocaleDateString()}}</text>
+        </view>
+        <button class="btn-delete" bindtap="deleteHistoryItem" data-keyword="{{item.keyword}}">
+          <icon type="cancel" size="16" color="#ff4757" />
+        </button>
+      </view>
+    </view>
+
+    <!-- 按日期分组模式 -->
+    <view wx:if="{{groupBy === 'day'}}">
+      <view class="date-group" wx:for="{{filteredHistory}}" wx:key="date">
+        <view class="date-header">
+          <text class="date-text">{{item.date}}</text>
+          <text class="count-text">({{item.items.length}}次)</text>
+        </view>
+        <view class="date-items">
+          <view 
+            class="history-item grouped" 
+            wx:for="{{item.items}}" 
+            wx:key="keyword"
+          >
+            <view class="history-content" bindtap="searchHistoryItem" data-keyword="{{item.keyword}}">
+              <text class="keyword">{{item.keyword}}</text>
+            </view>
+            <button class="btn-delete" bindtap="deleteHistoryItem" data-keyword="{{item.keyword}}">
+              <icon type="cancel" size="16" color="#ff4757" />
+            </button>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{filteredHistory.length === 0}}">
+    <view wx:if="{{searchQuery}}">
+      <text class="empty-text">未找到相关历史记录</text>
+      <text class="empty-hint">尝试其他搜索关键词</text>
+    </view>
+    <view wx:else>
+      <text class="empty-text">还没有搜索历史</text>
+      <text class="empty-hint">开始搜索菜谱吧</text>
+      <button class="btn-go-search" bindtap="goToSearch">去搜索</button>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

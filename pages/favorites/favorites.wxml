@@ -1,0 +1,103 @@
+<!-- pages/favorites/favorites.wxml -->
+<view class="container">
+  <!-- 头部操作栏 -->
+  <view class="header-bar">
+    <text class="title">我的收藏</text>
+    <view class="header-actions">
+      <button class="btn-icon" bindtap="shareFavorites">📤</button>
+      <button class="btn-icon" bindtap="clearAllFavorites">🗑️</button>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <icon type="search" size="16" color="#999" />
+    <input 
+      type="text" 
+      placeholder="搜索收藏的菜谱" 
+      value="{{searchQuery}}" 
+      bindinput="onSearchInput"
+    />
+  </view>
+
+  <!-- 排序选项 -->
+  <view class="sort-bar">
+    <text class="sort-label">排序：</text>
+    <view class="sort-options">
+      <button 
+        class="sort-btn {{sortBy === 'recent' ? 'active' : ''}}" 
+        bindtap="changeSort" 
+        data-sort="recent"
+      >
+        最近添加 {{sortBy === 'recent' ? (sortOrder === 'desc' ? '↓' : '↑') : ''}}
+      </button>
+      <button 
+        class="sort-btn {{sortBy === 'name' ? 'active' : ''}}" 
+        bindtap="changeSort" 
+        data-sort="name"
+      >
+        名称 {{sortBy === 'name' ? (sortOrder === 'desc' ? '↓' : '↑') : ''}}
+      </button>
+      <button 
+        class="sort-btn {{sortBy === 'calories' ? 'active' : ''}}" 
+        bindtap="changeSort" 
+        data-sort="calories"
+      >
+        卡路里 {{sortBy === 'calories' ? (sortOrder === 'desc' ? '↓' : '↑') : ''}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 收藏列表 -->
+  <view class="favorites-list">
+    <view 
+      class="favorite-item" 
+      wx:for="{{filteredFavorites}}" 
+      wx:key="id"
+    >
+      <image src="{{item.image}}" mode="aspectFill" class="recipe-image" />
+      <view class="recipe-content">
+        <view class="recipe-header">
+          <text class="recipe-title">{{item.title}}</text>
+          <view class="recipe-actions">
+            <button class="btn-small" bindtap="viewRecipeDetail" data-id="{{item.id}}">查看</button>
+            <button class="btn-small secondary" bindtap="addToMenu" data-recipe="{{item}}">加菜单</button>
+            <button class="btn-small danger" bindtap="removeFavorite" data-id="{{item.id}}">移除</button>
+          </view>
+        </view>
+        
+        <view class="recipe-meta">
+          <text class="meta-item">🕒 {{item.readyInMinutes}}分钟</text>
+          <text class="meta-item">👥 {{item.servings}}人份</text>
+          <text class="meta-item">🔥 {{item.nutrition.calories}}kcal</text>
+        </view>
+        
+        <view class="recipe-tags" wx:if="{{item.tags && item.tags.length > 0}}">
+          <text 
+            class="tag" 
+            wx:for="{{item.tags.slice(0, 3)}}" 
+            wx:key="*this"
+          >{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{filteredFavorites.length === 0}}">
+    <view wx:if="{{searchQuery}}">
+      <text class="empty-text">未找到相关收藏</text>
+      <text class="empty-hint">尝试其他搜索关键词</text>
+    </view>
+    <view wx:else>
+      <text class="empty-text">还没有收藏的菜谱</text>
+      <text class="empty-hint">去发现页面添加收藏吧</text>
+      <button class="btn-go-discover" bindtap="goToDiscover">去发现</button>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

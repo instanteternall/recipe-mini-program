@@ -1,0 +1,104 @@
+<!-- pages/menu-create/menu-create.wxml -->
+<view class="container">
+  <!-- 菜单名称输入 -->
+  <view class="menu-name-section">
+    <view class="input-group">
+      <text class="label">菜单名称</text>
+      <input 
+        type="text" 
+        placeholder="请输入菜单名称，如：周末早餐" 
+        value="{{menuName}}" 
+        bindinput="onNameInput"
+        class="name-input"
+      />
+    </view>
+  </view>
+
+  <!-- 已选择的菜谱 -->
+  <view class="selected-section" wx:if="{{selectedRecipes.length > 0}}">
+    <view class="section-header">
+      <text class="title">已选择的菜谱 ({{selectedRecipes.length}})</text>
+    </view>
+    <view class="selected-list">
+      <view 
+        class="selected-item" 
+        wx:for="{{selectedRecipes}}" 
+        wx:key="id"
+      >
+        <image src="{{item.image}}" mode="aspectFill" class="recipe-image" />
+        <view class="recipe-info">
+          <text class="recipe-title">{{item.title}}</text>
+          <view class="recipe-meta">
+            <text>{{item.readyInMinutes}}分钟</text>
+            <text>{{item.nutrition.calories}}kcal</text>
+          </view>
+        </view>
+        <view class="remove-btn" bindtap="removeRecipeFromMenu" data-id="{{item.id}}">
+          <icon type="cancel" size="16" color="#ff4757" />
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索菜谱 -->
+  <view class="search-section">
+    <view class="search-bar">
+      <icon type="search" size="16" color="#999" />
+      <input 
+        type="text" 
+        placeholder="搜索要添加的菜谱" 
+        value="{{searchQuery}}" 
+        bindinput="onSearchInput"
+        class="search-input"
+      />
+    </view>
+  </view>
+
+  <!-- 可用菜谱列表 -->
+  <view class="available-section">
+    <view class="section-header">
+      <text class="title">{{searchQuery ? '搜索结果' : '推荐菜谱'}}</text>
+    </view>
+    
+    <view class="recipe-grid" wx:if="{{availableRecipes.length > 0}}">
+      <view 
+        class="recipe-card" 
+        wx:for="{{availableRecipes}}" 
+        wx:key="id"
+        bindtap="addRecipeToMenu"
+        data-recipe="{{item}}"
+      >
+        <image src="{{item.image}}" mode="aspectFill" class="recipe-image" />
+        <view class="recipe-info">
+          <text class="recipe-title">{{item.title}}</text>
+          <view class="recipe-meta">
+            <text>{{item.readyInMinutes}}分钟</text>
+            <text>{{item.nutrition.calories}}kcal</text>
+          </view>
+        </view>
+        <view class="add-btn">
+          <icon type="success" size="20" color="#007aff" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{availableRecipes.length === 0 && !loading}}">
+      <text wx:if="{{searchQuery}}">未找到相关菜谱</text>
+      <text wx:else>暂无可用菜谱</text>
+    </view>
+
+    <!-- 加载状态 -->
+    <view class="loading" wx:if="{{loading}}">
+      <text>搜索中...</text>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <button class="btn-cancel" bindtap="cancelCreate">取消</button>
+    <button class="btn-save" bindtap="saveMenu">
+      {{isEditing ? '更新菜单' : '保存菜单'}}
+    </button>
+  </view>
+</view>

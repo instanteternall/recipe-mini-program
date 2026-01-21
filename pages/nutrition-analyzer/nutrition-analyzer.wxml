@@ -1,0 +1,260 @@
+<!-- pages/nutrition-analyzer/nutrition-analyzer.wxml -->
+<view class="container">
+  <!-- 头部操作栏 -->
+  <view class="header-bar">
+    <text class="title">营养分析器</text>
+    <view class="header-actions">
+      <button class="btn-icon" bindtap="addRecipe">➕</button>
+      <button class="btn-icon" bindtap="showGoalModal">🎯</button>
+      <button class="btn-icon" bindtap="shareAnalysis">📤</button>
+    </view>
+  </view>
+
+  <!-- 标签页导航 -->
+  <view class="tab-nav">
+    <view 
+      wx:for="{{['概览', '详情', '推荐']}}" 
+      wx:key="*this"
+      class="tab-item {{activeTab === item ? 'active' : ''}}"
+      bindtap="switchTab"
+      data-tab="{{item}}"
+    >
+      {{item}}
+    </view>
+  </view>
+
+  <!-- 概览标签页 -->
+  <scroll-view class="tab-content" scroll-y wx:if="{{activeTab === '概览'}}">
+    <!-- 营养目标概览 -->
+    <view class="goals-overview">
+      <view class="overview-header">
+        <text class="subtitle">每日营养目标</text>
+        <text class="edit-btn" bindtap="showGoalModal">编辑</text>
+      </view>
+      
+      <view class="goals-grid">
+        <view class="goal-item">
+          <text class="value">{{goals.calories}}</text>
+          <text class="unit">kcal</text>
+          <text class="label">卡路里</text>
+        </view>
+        <view class="goal-item">
+          <text class="value">{{goals.protein}}</text>
+          <text class="unit">g</text>
+          <text class="label">蛋白质</text>
+        </view>
+        <view class="goal-item">
+          <text class="value">{{goals.carbs}}</text>
+          <text class="unit">g</text>
+          <text class="label">碳水</text>
+        </view>
+        <view class="goal-item">
+          <text class="value">{{goals.fat}}</text>
+          <text class="unit">g</text>
+          <text class="label">脂肪</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 当前营养信息 -->
+    <view class="current-nutrition" wx:if="{{totalNutrition}}">
+      <view class="section-title">当前餐食营养</view>
+      
+      <view class="nutrition-grid">
+        <view class="nutrition-item">
+          <view class="progress-bar">
+            <view 
+              class="progress-fill" 
+              style="width: {{(totalNutrition.calories / goals.calories * 100).toFixed(0)}}%"
+            ></view>
+          </view>
+          <view class="nutrition-info">
+            <text class="value">{{totalNutrition.calories}}</text>
+            <text class="unit">/{{goals.calories}} kcal</text>
+            <text class="label">卡路里</text>
+          </view>
+        </view>
+        
+        <view class="nutrition-item">
+          <view class="progress-bar">
+            <view 
+              class="progress-fill protein" 
+              style="width: {{(totalNutrition.protein / goals.protein * 100).toFixed(0)}}%"
+            ></view>
+          </view>
+          <view class="nutrition-info">
+            <text class="value">{{totalNutrition.protein}}</text>
+            <text class="unit">/{{goals.protein}}g</text>
+            <text class="label">蛋白质</text>
+          </view>
+        </view>
+        
+        <view class="nutrition-item">
+          <view class="progress-bar">
+            <view 
+              class="progress-fill carbs" 
+              style="width: {{(totalNutrition.carbs / goals.carbs * 100).toFixed(0)}}%"
+            ></view>
+          </view>
+          <view class="nutrition-info">
+            <text class="value">{{totalNutrition.carbs}}</text>
+            <text class="unit">/{{goals.carbs}}g</text>
+            <text class="label">碳水</text>
+          </view>
+        </view>
+        
+        <view class="nutrition-item">
+          <view class="progress-bar">
+            <view 
+              class="progress-fill fat" 
+              style="width: {{(totalNutrition.fat / goals.fat * 100).toFixed(0)}}%"
+            ></view>
+          </view>
+          <view class="nutrition-info">
+            <text class="value">{{totalNutrition.fat}}</text>
+            <text class="unit">/{{goals.fat}}g</text>
+            <text class="label">脂肪</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 营养建议 -->
+    <view class="recommendations" wx:if="{{recommendations.length > 0}}">
+      <view class="section-title">营养建议</view>
+      <view class="recommendation-list">
+        <view class="recommendation-item" wx:for="{{recommendations}}" wx:key="*this">
+          <text class="recommendation-text">{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 详情标签页 -->
+  <scroll-view class="tab-content" scroll-y wx:if="{{activeTab === '详情'}}">
+    <view class="breakdown-list" wx:if="{{nutritionBreakdown.length > 0}}">
+      <view class="breakdown-item" wx:for="{{nutritionBreakdown}}" wx:key="recipe.id">
+        <view class="recipe-header" bindtap="viewRecipeDetail" data-id="{{item.recipe.id}}">
+          <image src="{{item.recipe.image}}" mode="aspectFill" class="recipe-image" />
+          <view class="recipe-info">
+            <text class="recipe-title">{{item.recipe.title}}</text>
+            <text class="recipe-meta">{{item.recipe.readyInMinutes}}分钟 • {{item.recipe.servings}}人份</text>
+          </view>
+        </view>
+        
+        <view class="recipe-nutrition">
+          <view class="nutrition-row">
+            <text>卡路里: {{item.nutrition.calories}}kcal ({{item.percentage.calories}}%)</text>
+          </view>
+          <view class="nutrition-row">
+            <text>蛋白质: {{item.nutrition.protein}}g ({{item.percentage.protein}}%)</text>
+          </view>
+          <view class="nutrition-row">
+            <text>碳水: {{item.nutrition.carbs}}g ({{item.percentage.carbs}}%)</text>
+          </view>
+          <view class="nutrition-row">
+            <text>脂肪: {{item.nutrition.fat}}g ({{item.percentage.fat}}%)</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 推荐标签页 -->
+  <scroll-view class="tab-content" scroll-y wx:if="{{activeTab === '推荐'}}">
+    <view class="meal-recommendations">
+      <view class="recommendation-card" wx:for="{{mealSuggestions}}" wx:key="*this">
+        <view class="card-header">
+          <text class="meal-type">{{item.type}}</text>
+          <text class="meal-calories">{{item.totalCalories}}kcal</text>
+        </view>
+        <view class="meal-recipes">
+          <text wx:for="{{item.recipes}}" wx:key="*this" class="recipe-name">{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{selectedRecipes.length === 0 && !loading}}">
+    <text class="empty-text">还没有添加菜谱进行分析</text>
+    <text class="empty-hint">点击右上角"+"添加菜谱</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>分析中...</text>
+  </view>
+
+  <!-- 营养目标设置弹窗 -->
+  <view class="modal-overlay" wx:if="{{showGoalModal}}" bindtap="hideGoalModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-header">
+        <text>设置营养目标</text>
+        <icon type="cancel" bindtap="hideGoalModal" />
+      </view>
+      
+      <view class="goal-inputs">
+        <view class="input-group">
+          <text class="input-label">每日卡路里 (kcal)</text>
+          <input 
+            type="number" 
+            value="{{goals.calories}}" 
+            bindinput="updateGoal" 
+            data-field="calories"
+            placeholder="2000"
+          />
+        </view>
+        
+        <view class="input-group">
+          <text class="input-label">蛋白质 (g)</text>
+          <input 
+            type="number" 
+            value="{{goals.protein}}" 
+            bindinput="updateGoal" 
+            data-field="protein"
+            placeholder="100"
+          />
+        </view>
+        
+        <view class="input-group">
+          <text class="input-label">碳水化合物 (g)</text>
+          <input 
+            type="number" 
+            value="{{goals.carbs}}" 
+            bindinput="updateGoal" 
+            data-field="carbs"
+            placeholder="250"
+          />
+        </view>
+        
+        <view class="input-group">
+          <text class="input-label">脂肪 (g)</text>
+          <input 
+            type="number" 
+            value="{{goals.fat}}" 
+            bindinput="updateGoal" 
+            data-field="fat"
+            placeholder="65"
+          />
+        </view>
+        
+        <view class="input-group">
+          <text class="input-label">膳食纤维 (g)</text>
+          <input 
+            type="number" 
+            value="{{goals.fiber}}" 
+            bindinput="updateGoal" 
+            data-field="fiber"
+            placeholder="25"
+          />
+        </view>
+      </view>
+      
+      <view class="modal-actions">
+        <button class="btn-secondary" bindtap="resetGoals">重置</button>
+        <button class="btn-primary" bindtap="saveGoals">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

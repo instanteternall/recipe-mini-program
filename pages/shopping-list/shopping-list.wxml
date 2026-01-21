@@ -1,0 +1,114 @@
+<!-- pages/shopping-list/shopping-list.wxml -->
+<view class="container">
+  <!-- 头部信息 -->
+  <view class="header-info" wx:if="{{menuName}}">
+    <text class="menu-name">{{menuName}}</text>
+    <text class="progress">已完成 {{checkedCount}}/{{totalItems}}</text>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{(checkedCount/totalItems*100).toFixed(0)}}%"></view>
+    </view>
+  </view>
+
+  <!-- 操作栏 -->
+  <view class="action-bar">
+    <view class="left-actions">
+      <button class="btn-icon" bindtap="toggleGrouping">
+        {{groupByCategory ? '📂' : '📄'}}
+      </button>
+      <button class="btn-icon" bindtap="addCustomItem">➕</button>
+    </view>
+    
+    <view class="right-actions">
+      <button class="btn-small" bindtap="checkAll">全选</button>
+      <button class="btn-small" bindtap="uncheckAll">全不选</button>
+      <button class="btn-small danger" bindtap="deleteChecked">删除</button>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <icon type="search" size="16" color="#999" />
+    <input 
+      type="text" 
+      placeholder="搜索物品" 
+      value="{{searchQuery}}" 
+      bindinput="onSearchInput"
+    />
+  </view>
+
+  <!-- 购物清单 -->
+  <scroll-view class="shopping-list" scroll-y>
+    <view class="list-content">
+      <view 
+        class="category-group" 
+        wx:for="{{filteredList}}" 
+        wx:key="category"
+        wx:if="{{groupByCategory}}"
+      >
+        <view class="category-header">
+          <text class="category-name">{{item.category}}</text>
+          <text class="category-count">({{item.items.length}})</text>
+        </view>
+        
+        <view class="category-items">
+          <view 
+            class="list-item {{checkedItems[globalIndex + index] ? 'checked' : ''}}" 
+            wx:for="{{item.items}}" 
+            wx:key="name"
+            bindtap="toggleItem"
+            data-group-index="{{index}}"
+            data-item-index="{{index}}"
+          >
+            <checkbox checked="{{checkedItems[globalIndex + index]}}" />
+            <view class="item-content">
+              <text class="item-name">{{item.name}}</text>
+              <text class="item-amount">{{item.amount}} {{item.unit}}</text>
+            </view>
+            <view class="item-sources" wx:if="{{item.sources && item.sources.length > 1}}">
+              <text class="sources-text">来自 {{item.sources.length}} 道菜</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 不分组显示 -->
+      <view wx:if="{{!groupByCategory}}">
+        <view 
+          class="list-item {{checkedItems[index] ? 'checked' : ''}}" 
+          wx:for="{{filteredList[0].items}}" 
+          wx:key="name"
+          bindtap="toggleItem"
+          data-group-index="0"
+          data-item-index="{{index}}"
+        >
+          <checkbox checked="{{checkedItems[index]}}" />
+          <view class="item-content">
+            <text class="item-name">{{item.name}}</text>
+            <text class="item-amount">{{item.amount}} {{item.unit}}</text>
+          </view>
+          <view class="item-category">
+            <text class="category-tag">{{item.category}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <button class="btn-secondary" bindtap="saveShoppingList">💾 保存</button>
+    <button class="btn-secondary" bindtap="shareShoppingList">📤 分享</button>
+    <button class="btn-primary" bindtap="viewMenuDetail" wx:if="{{menuId}}">👀 查看菜单</button>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{totalItems === 0 && !loading}}">
+    <text class="empty-text">购物清单是空的</text>
+    <text class="empty-hint">从菜单生成或手动添加物品</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>生成购物清单中...</text>
+  </view>
+</view>

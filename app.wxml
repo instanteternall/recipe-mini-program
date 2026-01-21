@@ -1,0 +1,4 @@
+<!-- app.wxml -->
+<view class="container">
+  <!-- 这里可以添加全局布局或组件 -->
+</view>

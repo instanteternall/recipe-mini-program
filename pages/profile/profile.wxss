@@ -1,0 +1,207 @@
+/* pages/profile/profile.wxss */
+.container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding-bottom: 20px;
+}
+
+/* 用户信息卡片 */
+.user-card {
+  background-color: #fff;
+  margin: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  margin-right: 12px;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.nickname {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.login-status {
+  font-size: 12px;
+  color: #4caf50;
+}
+
+.btn-logout {
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+/* 登录提示 */
+.login-prompt {
+  background-color: #fff;
+  margin: 16px;
+  padding: 24px 16px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.prompt-text {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.btn-login {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  background-color: #07c160;
+  color: #fff;
+}
+
+/* 用户统计 */
+.stats-section {
+  background-color: #fff;
+  margin: 16px;
+  padding: 20px 16px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-around;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-item {
+  text-align: center;
+  cursor: pointer;
+}
+
+.stat-number {
+  font-size: 24px;
+  font-weight: bold;
+  color: #007aff;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666;
+}
+
+/* 通用section样式 */
+.section {
+  background-color: #fff;
+  margin: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+.edit-btn {
+  font-size: 14px;
+  color: #007aff;
+}
+
+/* 偏好设置 */
+.preferences-list {
+  padding: 0 16px 16px;
+}
+
+.preference-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.preference-item:last-child {
+  border-bottom: none;
+}
+
+.preference-label {
+  font-size: 14px;
+  color: #333;
+}
+
+.preference-value {
+  font-size: 14px;
+  color: #666;
+  max-width: 200px;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 设置 */
+.settings-list {
+  padding: 0 16px 16px;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-label {
+  font-size: 14px;
+  color: #333;
+}
+
+/* 菜单列表 */
+.menu-list {
+  padding: 0 16px 16px;
+}
+
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.menu-item:last-child {
+  border-bottom: none;
+}
+
+.menu-text {
+  font-size: 14px;
+  color: #333;
+}

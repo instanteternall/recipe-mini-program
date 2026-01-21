@@ -1,0 +1,93 @@
+<!-- pages/search/search.wxml -->
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-section">
+    <view class="search-bar">
+      <icon type="search" size="16" color="#999" />
+      <input 
+        type="text" 
+        placeholder="搜索菜谱、食材..." 
+        value="{{keyword}}" 
+        bindinput="onInput" 
+        confirm-type="search" 
+        bindconfirm="performSearch"
+      />
+      <view class="search-btn" bindtap="performSearch">搜索</view>
+    </view>
+  </view>
+
+  <!-- 搜索历史 -->
+  <view class="history-section" wx:if="{{searchHistory.length > 0}}">
+    <view class="section-header">
+      <text class="title">搜索历史</text>
+      <text class="clear-btn" bindtap="clearHistory">清除</text>
+    </view>
+    <view class="history-tags">
+      <text 
+        class="tag" 
+        wx:for="{{searchHistory}}" 
+        wx:key="*this" 
+        bindtap="onHistoryTap" 
+        data-keyword="{{item}}"
+      >{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 热门搜索 -->
+  <view class="hot-section">
+    <view class="section-header">
+      <text class="title">热门搜索</text>
+    </view>
+    <view class="hot-tags">
+      <text 
+        class="tag hot-tag" 
+        wx:for="{{hotKeywords}}" 
+        wx:key="*this" 
+        bindtap="onHotKeywordTap" 
+        data-keyword="{{item}}"
+      >{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 搜索结果 -->
+  <view class="results-section" wx:if="{{searchResults.length > 0}}">
+    <view class="results-list">
+      <view 
+        class="result-item" 
+        wx:for="{{searchResults}}" 
+        wx:key="id" 
+        bindtap="goToRecipeDetail" 
+        data-id="{{item.id}}"
+      >
+        <image src="{{item.image}}" mode="aspectFill" class="recipe-image" />
+        <view class="recipe-info">
+          <text class="title">{{item.title}}</text>
+          <view class="meta">
+            <text class="time">{{item.readyInMinutes}}分钟</text>
+            <text class="calories">{{item.nutrition.calories}}kcal</text>
+          </view>
+          <view class="tags">
+            <text wx:for="{{item.tags}}" wx:key="*this" class="tag">{{item}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="load-more" wx:if="{{hasMore}}" bindtap="loadMore">
+      <text wx:if="{{!loading}}">加载更多</text>
+      <text wx:else>加载中...</text>
+    </view>
+  </view>
+
+  <!-- 无结果 -->
+  <view class="no-results" wx:if="{{searchResults.length === 0 && !loading}}">
+    <text>暂无搜索结果</text>
+    <text>尝试其他关键词</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading && searchResults.length === 0}}">
+    <text>搜索中...</text>
+  </view>
+</view>

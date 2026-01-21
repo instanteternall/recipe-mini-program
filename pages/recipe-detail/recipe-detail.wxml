@@ -1,0 +1,203 @@
+<!-- pages/recipe-detail/recipe-detail.wxml -->
+<view class="container">
+  <!-- 菜谱头部信息 -->
+  <view class="recipe-header" wx:if="{{recipe}}">
+    <!-- 菜谱图片轮播 -->
+    <swiper class="image-swiper" indicator-dots autoplay="false">
+      <swiper-item wx:if="{{recipe.image}}">
+        <image src="{{recipe.image}}" mode="aspectFill" class="recipe-image" />
+      </swiper-item>
+    </swiper>
+
+    <!-- 菜谱基本信息 -->
+    <view class="recipe-info">
+      <text class="title">{{recipe.title}}</text>
+      <view class="meta-info">
+        <text class="meta-item">🕒 {{recipe.readyInMinutes}}分钟</text>
+        <text class="meta-item">👥 {{recipe.servings}}人份</text>
+        <text class="meta-item">⭐ {{userRating || '未评分'}}</text>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="action-buttons">
+        <button class="btn-favorite {{isFavorite ? 'favorited' : ''}}" bindtap="toggleFavorite">
+          {{isFavorite ? '已收藏' : '收藏'}}
+        </button>
+        <button class="btn-rating" bindtap="showRatingModal">评分</button>
+        <button class="btn-share" bindtap="shareRecipe">分享</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 标签页导航 -->
+  <view class="tab-nav" wx:if="{{recipe}}">
+    <view 
+      wx:for="{{['食材', '做法', '营养', '推荐']}}" 
+      wx:key="*this"
+      class="tab-item {{activeTab === index ? 'active' : ''}}"
+      bindtap="switchTab"
+      data-index="{{index}}"
+    >
+      {{item}}
+    </view>
+  </view>
+
+  <!-- 标签页内容 -->
+  <scroll-view class="tab-content" scroll-y wx:if="{{recipe}}">
+    <!-- 食材标签页 -->
+    <view wx:if="{{activeTab === 0}}" class="ingredients-tab">
+      <view class="servings-selector">
+        <text>份数：</text>
+        <picker mode="selector" range="{{[1,2,3,4,5,6]}}" value="{{0}}" bindchange="changeServings">
+          <view class="picker-display">{{recipe.servings}}人份</view>
+        </picker>
+      </view>
+
+      <view class="ingredients-list">
+        <view class="section-title">食材清单</view>
+        <view 
+          class="ingredient-item {{checkedIngredients[index] ? 'checked' : ''}}" 
+          wx:for="{{recipe.ingredients}}" 
+          wx:key="id"
+          bindtap="toggleIngredient"
+          data-index="{{index}}"
+        >
+          <checkbox checked="{{checkedIngredients[index]}}" />
+          <view class="ingredient-content">
+            <text class="name">{{item.name}}</text>
+            <text class="amount">{{item.amount}} {{item.unit}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 做法标签页 -->
+    <view wx:if="{{activeTab === 1}}" class="instructions-tab">
+      <view class="instructions-list">
+        <view class="instruction-item" wx:for="{{recipe.instructions}}" wx:key="number">
+          <view class="step-number">{{item.number}}</view>
+          <view class="step-content">
+            <text>{{item.step}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 营养标签页 -->
+    <view wx:if="{{activeTab === 2}}" class="nutrition-tab">
+      <view class="nutrition-summary">
+        <view class="nutrition-item">
+          <text class="label">卡路里</text>
+          <text class="value">{{recipe.nutrition.calories}}kcal</text>
+        </view>
+        <view class="nutrition-item">
+          <text class="label">蛋白质</text>
+          <text class="value">{{recipe.nutrition.protein}}g</text>
+        </view>
+        <view class="nutrition-item">
+          <text class="label">碳水化合物</text>
+          <text class="value">{{recipe.nutrition.carbs}}g</text>
+        </view>
+        <view class="nutrition-item">
+          <text class="label">脂肪</text>
+          <text class="value">{{recipe.nutrition.fat}}g</text>
+        </view>
+        <view class="nutrition-item" wx:if="{{recipe.nutrition.fiber}}">
+          <text class="label">膳食纤维</text>
+          <text class="value">{{recipe.nutrition.fiber}}g</text>
+        </view>
+        <view class="nutrition-item" wx:if="{{recipe.nutrition.sugar}}">
+          <text class="label">糖分</text>
+          <text class="value">{{recipe.nutrition.sugar}}g</text>
+        </view>
+      </view>
+
+      <view class="nutrition-analysis" wx:if="{{nutritionAnalysis}}">
+        <view class="analysis-title">营养分析</view>
+        <view class="recommendations">
+          <text wx:for="{{nutritionAnalysis.recommendations}}" wx:key="*this">{{item}}</text>
+        </view>
+        <button class="btn-analysis" bindtap="goToNutritionAnalysis">查看详细分析</button>
+      </view>
+    </view>
+
+    <!-- 推荐标签页 -->
+    <view wx:if="{{activeTab === 3}}" class="recommendations-tab">
+      <view class="recommendations-list">
+        <view 
+          class="recommendation-item" 
+          wx:for="{{recommendedRecipes}}" 
+          wx:key="id"
+          bindtap="viewRecommendedRecipe"
+          data-id="{{item.id}}"
+        >
+          <image src="{{item.image}}" mode="aspectFill" class="rec-image" />
+          <view class="rec-info">
+            <text class="rec-title">{{item.title}}</text>
+            <view class="rec-meta">
+              <text>{{item.readyInMinutes}}分钟</text>
+              <text>{{item.nutrition.calories}}kcal</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar" wx:if="{{recipe}}">
+    <button class="btn-primary" bindtap="addToMenu">添加到菜单</button>
+  </view>
+
+  <!-- 评分弹窗 -->
+  <view class="rating-modal" wx:if="{{showRatingModal}}" catchtap="hideRatingModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-header">
+        <text>给菜谱评分</text>
+        <icon type="cancel" bindtap="hideRatingModal" />
+      </view>
+      <view class="rating-stars">
+        <view 
+          class="star {{userRating >= 1 ? 'active' : ''}}" 
+          bindtap="setRating" 
+          data-rating="1"
+        >★</view>
+        <view 
+          class="star {{userRating >= 2 ? 'active' : ''}}" 
+          bindtap="setRating" 
+          data-rating="2"
+        >★</view>
+        <view 
+          class="star {{userRating >= 3 ? 'active' : ''}}" 
+          bindtap="setRating" 
+          data-rating="3"
+        >★</view>
+        <view 
+          class="star {{userRating >= 4 ? 'active' : ''}}" 
+          bindtap="setRating" 
+          data-rating="4"
+        >★</view>
+        <view 
+          class="star {{userRating >= 5 ? 'active' : ''}}" 
+          bindtap="setRating" 
+          data-rating="5"
+        >★</view>
+      </view>
+      <view class="modal-actions">
+        <button class="btn-cancel" bindtap="hideRatingModal">取消</button>
+        <button class="btn-confirm" bindtap="submitRating">确定</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 错误状态 -->
+  <view class="error" wx:if="{{!loading && !recipe}}">
+    <text>加载失败，请重试</text>
+    <button bindtap="loadRecipeDetail">重试</button>
+  </view>
+</view>

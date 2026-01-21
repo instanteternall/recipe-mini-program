@@ -1,0 +1,106 @@
+<!-- pages/menu-planner/menu-planner.wxml -->
+<view class="container">
+  <!-- 头部操作栏 -->
+  <view class="header-bar">
+    <text class="title">我的菜单</text>
+    <view class="header-actions">
+      <button class="btn-icon" bindtap="batchOperations">⚙️</button>
+      <button class="btn-icon" bindtap="createNewMenu">➕</button>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <icon type="search" size="16" color="#999" />
+    <input 
+      type="text" 
+      placeholder="搜索菜单" 
+      value="{{searchQuery}}" 
+      bindinput="onSearchInput"
+    />
+  </view>
+
+  <!-- 排序选项 -->
+  <view class="sort-bar">
+    <text class="sort-label">排序：</text>
+    <view class="sort-options">
+      <button 
+        class="sort-btn {{sortBy === 'recent' ? 'active' : ''}}" 
+        bindtap="changeSort" 
+        data-sort="recent"
+      >
+        最近更新 {{sortBy === 'recent' ? (sortOrder === 'desc' ? '↓' : '↑') : ''}}
+      </button>
+      <button 
+        class="sort-btn {{sortBy === 'name' ? 'active' : ''}}" 
+        bindtap="changeSort" 
+        data-sort="name"
+      >
+        名称 {{sortBy === 'name' ? (sortOrder === 'desc' ? '↓' : '↑') : ''}}
+      </button>
+      <button 
+        class="sort-btn {{sortBy === 'recipes' ? 'active' : ''}}" 
+        bindtap="changeSort" 
+        data-sort="recipes"
+      >
+        菜品数量 {{sortBy === 'recipes' ? (sortOrder === 'desc' ? '↓' : '↑') : ''}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 菜单列表 -->
+  <view class="menus-list">
+    <view 
+      class="menu-item" 
+      wx:for="{{filteredMenus}}" 
+      wx:key="id"
+    >
+      <view class="menu-content" bindtap="viewMenuDetail" data-id="{{item.id}}">
+        <view class="menu-header">
+          <text class="menu-title">{{item.name}}</text>
+          <view class="menu-actions">
+            <button class="btn-small" bindtap="editMenu" data-id="{{item.id}}">编辑</button>
+            <button class="btn-small" bindtap="duplicateMenu" data-id="{{item.id}}">复制</button>
+            <button class="btn-small danger" bindtap="deleteMenu" data-id="{{item.id}}">删除</button>
+          </view>
+        </view>
+        
+        <view class="menu-meta">
+          <text class="meta-item">{{item.recipes ? item.recipes.length : 0}}道菜</text>
+          <text class="meta-item">更新时间：{{item.updatedAt ? item.updatedAt.split('T')[0] : '未知'}}</text>
+        </view>
+        
+        <view class="menu-recipes" wx:if="{{item.recipes && item.recipes.length > 0}}">
+          <text 
+            class="recipe-name" 
+            wx:for="{{item.recipes.slice(0, 3)}}" 
+            wx:key="*this"
+          >{{item.title}}</text>
+          <text wx:if="{{item.recipes.length > 3}}" class="more-recipes">等{{item.recipes.length}}道菜</text>
+        </view>
+      </view>
+      
+      <view class="menu-side-actions">
+        <button class="btn-icon-small" bindtap="shareMenu" data-id="{{item.id}}">📤</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{filteredMenus.length === 0}}">
+    <view wx:if="{{searchQuery}}">
+      <text class="empty-text">未找到相关菜单</text>
+      <text class="empty-hint">尝试其他搜索关键词</text>
+    </view>
+    <view wx:else>
+      <text class="empty-text">还没有创建菜单</text>
+      <text class="empty-hint">创建一个菜单来规划你的餐食</text>
+      <button class="btn-create-first" bindtap="createNewMenu">创建第一个菜单</button>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载菜单中...</text>
+  </view>
+</view>

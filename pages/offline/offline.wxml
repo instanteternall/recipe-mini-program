@@ -1,0 +1,117 @@
+<!-- pages/offline/offline.wxml -->
+<view class="container">
+  <!-- 存储信息卡片 -->
+  <view class="storage-card">
+    <view class="storage-info">
+      <text class="storage-title">本地存储</text>
+      <text class="storage-details" bindtap="viewStorageDetails">
+        {{storageInfo.used}}KB / {{storageInfo.total}}KB ({{storageInfo.percentage}}%)
+      </text>
+    </view>
+    <view class="storage-actions">
+      <button class="btn-icon" bindtap="optimizeStorage">🧹</button>
+      <button class="btn-icon" bindtap="syncToCloud">☁️</button>
+    </view>
+  </view>
+
+  <!-- 离线内容概览 -->
+  <view class="overview-section">
+    <text class="overview-title">离线内容</text>
+    <view class="overview-stats">
+      <view class="stat-item">
+        <text class="stat-number">{{offlineRecipes.length}}</text>
+        <text class="stat-label">菜谱</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{offlineMenus.length}}</text>
+        <text class="stat-label">菜单</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{totalOfflineItems}}</text>
+        <text class="stat-label">总数</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 离线菜谱列表 -->
+  <view class="content-section" wx:if="{{offlineRecipes.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">离线菜谱</text>
+      <text class="section-count">({{offlineRecipes.length}})</text>
+    </view>
+    
+    <view class="recipes-list">
+      <view 
+        class="recipe-item" 
+        wx:for="{{offlineRecipes}}" 
+        wx:key="id"
+      >
+        <image src="{{item.image}}" mode="aspectFill" class="recipe-image" />
+        <view class="recipe-content">
+          <view class="recipe-header">
+            <text class="recipe-title">{{item.title}}</text>
+            <view class="recipe-actions">
+              <button class="btn-small" bindtap="viewOfflineRecipe" data-id="{{item.id}}">查看</button>
+              <button class="btn-small danger" bindtap="removeRecipeFromOffline" data-id="{{item.id}}">移除</button>
+            </view>
+          </view>
+          
+          <view class="recipe-meta">
+            <text class="meta-item">🕒 {{item.readyInMinutes}}分钟</text>
+            <text class="meta-item">👥 {{item.servings}}人份</text>
+            <text class="meta-item">🔥 {{item.nutrition.calories}}kcal</text>
+          </view>
+          
+          <view class="offline-indicator">
+            <text class="offline-text">📱 离线可用</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 离线菜单列表 -->
+  <view class="content-section" wx:if="{{offlineMenus.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">离线菜单</text>
+      <text class="section-count">({{offlineMenus.length}})</text>
+    </view>
+    
+    <view class="menus-list">
+      <view 
+        class="menu-item" 
+        wx:for="{{offlineMenus}}" 
+        wx:key="id"
+        bindtap="viewOfflineMenu"
+        data-id="{{item.id}}"
+      >
+        <view class="menu-content">
+          <text class="menu-title">{{item.name}}</text>
+          <view class="menu-meta">
+            <text>{{item.recipes ? item.recipes.length : 0}}道菜</text>
+            <text>📱 离线可用</text>
+          </view>
+        </view>
+        <icon type="right" size="14" color="#ccc" />
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作栏 -->
+  <view class="action-bar">
+    <button class="btn-secondary" bindtap="manageOffline">⚙️ 管理</button>
+    <button class="btn-primary" bindtap="addRecipeToOffline">➕ 添加菜谱</button>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{totalOfflineItems === 0 && !loading}}">
+    <text class="empty-icon">📱</text>
+    <text class="empty-text">还没有离线内容</text>
+    <text class="empty-hint">将喜欢的菜谱和菜单保存到本地，随时离线查看</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载离线内容中...</text>
+  </view>
+</view>
