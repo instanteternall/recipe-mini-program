@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // 聚合数据API配置
 const JUHE_API_KEY = '12be18fba59f76f071b14b23df49804c';
-const JUHE_BASE_URL = 'http://apis.juhe.cn/cook';
+const JUHE_BASE_URL = 'http://apis.juhe.cn/fapigx/caipu';
 
 // 转换聚合数据格式的函数
 function transformJuheRecipe(juheRecipe) {
@@ -26,21 +26,21 @@ function transformJuheRecipe(juheRecipe) {
 
   return {
     id: juheRecipe.id || Math.random().toString(36).substr(2, 9),
-    title: juheRecipe.title || '',
-    image: juheRecipe.albums && juheRecipe.albums[0] ? juheRecipe.albums[0] : '',
+    title: juheRecipe.cp_name || '',
+    image: '',
     readyInMinutes: 30,
     servings: 2,
-    ingredients: juheRecipe.ingredients ?
-      juheRecipe.ingredients.split(/[、,，]/).map(ing => ({
+    ingredients: juheRecipe.yuanliao ?
+      juheRecipe.yuanliao.split(/[、,，]/).map(ing => ({
         name: ing.trim(),
         amount: '',
         unit: '',
         original: ing.trim(),
       })) : [],
-    instructions: juheRecipe.steps ?
-      juheRecipe.steps.map((step, index) => ({
+    instructions: juheRecipe.zuofa ?
+      juheRecipe.zuofa.split(/\d+\。/).filter(step => step.trim()).map((step, index) => ({
         number: index + 1,
-        step: step.description || step.step || '',
+        step: step.trim(),
       })) : [],
     nutrition: {
       calories: 0,
@@ -51,8 +51,8 @@ function transformJuheRecipe(juheRecipe) {
       sugar: 0,
       sodium: 0,
     },
-    tags: juheRecipe.tags ? juheRecipe.tags.split(/[、,，]/) : [],
-    description: juheRecipe.imtro || '',
+    tags: juheRecipe.type_name ? [juheRecipe.type_name] : [],
+    description: juheRecipe.texing || juheRecipe.tishi || '',
   };
 }
 
@@ -72,20 +72,20 @@ app.get('/api/recipes/featured', async (req, res) => {
     const popularKeywords = ['鸡肉', '牛肉', '猪肉', '蔬菜', '汤'];
     const randomKeyword = popularKeywords[Math.floor(Math.random() * popularKeywords.length)];
 
-    const response = await axios.get(`${JUHE_BASE_URL}/query.php`, {
+    const response = await axios.get(`${JUHE_BASE_URL}/query`, {
       params: {
         key: JUHE_API_KEY,
-        menu: randomKeyword,
-        rn: 6,
+        word: randomKeyword,
+        num: 6,
       },
       timeout: 15000,
     });
 
-    if (response.data.resultcode !== '200') {
+    if (response.data.error_code !== 0) {
       throw new Error(response.data.reason || 'API request failed');
     }
 
-    const recipes = response.data.result.data.slice(0, 6).map(transformJuheRecipe);
+    const recipes = response.data.result.list.slice(0, 6).map(transformJuheRecipe);
 
     res.json({
       code: 0,
@@ -112,20 +112,20 @@ app.get('/api/recipes/search', async (req, res) => {
       });
     }
 
-    const response = await axios.get(`${JUHE_BASE_URL}/query.php`, {
+    const response = await axios.get(`${JUHE_BASE_URL}/query`, {
       params: {
         key: JUHE_API_KEY,
-        menu: query.trim(),
-        rn: 10,
+        word: query.trim(),
+        num: 10,
       },
       timeout: 15000,
     });
 
-    if (response.data.resultcode !== '200') {
+    if (response.data.error_code !== 0) {
       throw new Error(response.data.reason || 'API request failed');
     }
 
-    const recipes = response.data.result.data.map(transformJuheRecipe);
+    const recipes = response.data.result.list.map(transformJuheRecipe);
 
     res.json({
       code: 0,
@@ -152,20 +152,20 @@ app.get('/api/recipes/:id', async (req, res) => {
       });
     }
 
-    const response = await axios.get(`${JUHE_BASE_URL}/query.php`, {
+    const response = await axios.get(`${JUHE_BASE_URL}/query`, {
       params: {
         key: JUHE_API_KEY,
-        menu: id,
-        rn: 1,
+        word: id,
+        num: 1,
       },
       timeout: 15000,
     });
 
-    if (response.data.resultcode !== '200' || !response.data.result.data.length) {
+    if (response.data.error_code !== 0 || !response.data.result.list.length) {
       throw new Error('菜谱不存在');
     }
 
-    const recipe = transformJuheRecipe(response.data.result.data[0]);
+    const recipe = transformJuheRecipe(response.data.result.list[0]);
 
     res.json({
       code: 0,
