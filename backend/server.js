@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const axios = require('axios');
+require('dotenv').config(); // 加载环境变量
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,7 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // 聚合数据API配置
-const JUHE_API_KEY = '12be18fba59f76f071b14b23df49804c';
+const JUHE_API_KEY = process.env.JUHE_API_KEY || '12be18fba59f76f071b14b23df49804c';
 const JUHE_BASE_URL = 'http://apis.juhe.cn/fapigx/caipu';
 
 // 转换聚合数据格式的函数
@@ -63,6 +64,7 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     api_provider: 'Juhe Data (聚合数据)',
+    api_key_loaded: !!process.env.JUHE_API_KEY,
   });
 });
 
@@ -268,6 +270,7 @@ app.listen(PORT, () => {
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
   console.log(`🍽️ API Provider: Juhe Data (聚合数据)`);
+  console.log(`🔑 API Key loaded: ${!!process.env.JUHE_API_KEY}`);
 });
 
 module.exports = app;
