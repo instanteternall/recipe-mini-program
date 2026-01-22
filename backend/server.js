@@ -77,7 +77,7 @@ app.get('/api/recipes/featured', async (req, res) => {
     const response = await axios.get(`${JUHE_BASE_URL}/query`, {
       params: {
         key: JUHE_API_KEY,
-        word: randomKeyword,
+        word: encodeURIComponent(randomKeyword),
         num: 6,
       },
       timeout: 15000,
@@ -117,7 +117,7 @@ app.get('/api/recipes/search', async (req, res) => {
     const response = await axios.get(`${JUHE_BASE_URL}/query`, {
       params: {
         key: JUHE_API_KEY,
-        word: query.trim(),
+        word: encodeURIComponent(query.trim()),
         num: 10,
       },
       timeout: 15000,
