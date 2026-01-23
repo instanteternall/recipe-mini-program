@@ -18,11 +18,55 @@ app.use(express.urlencoded({ extended: true }));
 // API Provider配置
 const API_PROVIDER = process.env.API_PROVIDER || 'themealdb'; // juhe 或 themealdb
 
-// 聚合数据API配置
-const JUHE_API_KEY = process.env.JUHE_API_KEY || '12be18fba59f76f071b14b23df49804c';
+// 聚合数据API配置 - 支持多账号轮换
+const JUHE_API_KEYS = (process.env.JUHE_API_KEYS || process.env.JUHE_API_KEY || '12be18fba59f76f071b14b23df49804c').split(',').map(k => k.trim());
+const JUHE_API_LIMIT = parseInt(process.env.JUHE_API_LIMIT || '50');
 const JUHE_BASE_URL = 'http://apis.juhe.cn/fapigx/caipu';
 
-// TheMealDB API配置
+// Key使用计数器（内存存储）
+const keyUsage = {};
+const currentKeyIndex = {};
+
+// 初始化Key使用计数
+function initKeyUsage() {
+  JUHE_API_KEYS.forEach(key => {
+    if (!keyUsage[key]) {
+      keyUsage[key] = 0;
+    }
+  });
+}
+
+// 获取下一个可用的JuHe Key
+function getNextJuHeKey() {
+  initKeyUsage();
+
+  // 找到未达上限的Key
+  for (const key of JUHE_API_KEYS) {
+    if (keyUsage[key] < JUHE_API_LIMIT) {
+      return key;
+    }
+  }
+
+  // 如果所有Key都达上限，重置计数（新的一天）
+  console.log('⚠️  All JuHe API keys reached limit, resetting usage count');
+  Object.keys(keyUsage).forEach(key => {
+    keyUsage[key] = 0;
+  });
+
+  // 返回第一个Key
+  return JUHE_API_KEYS[0];
+}
+
+// 增加Key使用计数
+function incrementKeyUsage(key) {
+  if (keyUsage[key] !== undefined) {
+    keyUsage[key]++;
+    console.log(`📊 JuHe API Key usage (${key.slice(0, 8)}...): ${keyUsage[key]}/${JUHE_API_LIMIT}`);
+  }
+}
+
+// 单个Key兼容性（保持向后兼容）
+const JUHE_API_KEY = JUHE_API_KEYS[0];
 const THEMEALDB_API_KEY = process.env.THEMEALDB_API_KEY || '1';
 const THEMEALDB_BASE_URL = 'https://www.themealdb.com/api/json/v1/1';
 
@@ -126,12 +170,18 @@ async function searchRecipes(query, limit = 10) {
     }
     return response.data.meals.slice(0, limit).map(transformMealDBRecipe);
   } else {
-    // 使用聚合数据API
-    const url = `${JUHE_BASE_URL}/query?key=${JUHE_API_KEY}&word=${encodeURIComponent(query)}&num=${limit}`;
+    // 使用聚合数据API - 支持多Key轮换
+    const currentKey = getNextJuHeKey();
+    const url = `${JUHE_BASE_URL}/query?key=${currentKey}&word=${encodeURIComponent(query)}&num=${limit}`;
     const response = await axios.get(url, { timeout: 15000 });
+
     if (response.data.error_code !== 0) {
       throw new Error(response.data.reason || 'API request failed');
     }
+
+    // 增加Key使用计数
+    incrementKeyUsage(currentKey);
+
     return response.data.result.list.slice(0, limit).map(transformJuheRecipe);
   }
 }
@@ -146,12 +196,17 @@ async function getRecipeById(id) {
     }
     return transformMealDBRecipe(response.data.meals[0]);
   } else {
-    // 使用聚合数据API
-    const url = `${JUHE_BASE_URL}/query?key=${JUHE_API_KEY}&word=${encodeURIComponent(id)}&num=1`;
+    // 使用聚合数据API - 支持多Key轮换
+    const currentKey = getNextJuHeKey();
+    const url = `${JUHE_BASE_URL}/query?key=${currentKey}&word=${encodeURIComponent(id)}&num=1`;
     const response = await axios.get(url, { timeout: 15000 });
     if (response.data.error_code !== 0 || !response.data.result.list.length) {
       throw new Error('菜谱不存在');
     }
+
+    // 增加Key使用计数
+    incrementKeyUsage(currentKey);
+
     return transformJuheRecipe(response.data.result.list[0]);
   }
 }
@@ -169,14 +224,20 @@ async function getRandomRecipes(limit = 6) {
     }
     return recipes;
   } else {
-    // 使用聚合数据API
+    // 使用聚合数据API - 支持多Key轮换
+    const currentKey = getNextJuHeKey();
     const popularKeywords = ['鸡肉', '牛肉', '猪肉', '蔬菜', '汤'];
     const randomKeyword = popularKeywords[Math.floor(Math.random() * popularKeywords.length)];
-    const url = `${JUHE_BASE_URL}/query?key=${JUHE_API_KEY}&word=${encodeURIComponent(randomKeyword)}&num=${limit}`;
+    const url = `${JUHE_BASE_URL}/query?key=${currentKey}&word=${encodeURIComponent(randomKeyword)}&num=${limit}`;
     const response = await axios.get(url, { timeout: 15000 });
+
     if (response.data.error_code !== 0) {
       throw new Error(response.data.reason || 'API request failed');
     }
+
+    // 增加Key使用计数
+    incrementKeyUsage(currentKey);
+
     return response.data.result.list.slice(0, limit).map(transformJuheRecipe);
   }
 }
