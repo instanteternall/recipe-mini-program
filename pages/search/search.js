@@ -48,7 +48,7 @@ Page({
     this.saveSearchHistory(keyword);
 
     wx.request({
-      url: 'https://your-backend.com/api/recipes/search',
+      url: 'http://121.199.164.252:3000/api/recipes/search',
       method: 'GET',
       data: {
         query: keyword,
@@ -81,7 +81,7 @@ Page({
     const nextPage = this.data.page + 1;
 
     wx.request({
-      url: 'https://your-backend.com/api/recipes/search',
+      url: 'http://121.199.164.252:3000/api/recipes/search',
       method: 'GET',
       data: {
         query: this.data.keyword,

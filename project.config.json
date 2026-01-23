@@ -2,10 +2,39 @@
   "miniprogramRoot": "./",
   "projectname": "recipe-mini-program",
   "description": "美食助手 - 智能菜谱搜索和菜单规划工具",
-  "appid": "your-wechat-appid-here",
-  "projectname": "recipe-mini-program",
+  "appid": "wx22b7624e6414c963",
   "simulatorType": "wechat",
   "simulatorPluginLibVersion": {},
   "condition": {},
-  "editorconfig": {}
+  "editorconfig": {},
+  "setting": {
+    "es6": false,
+    "postcss": false,
+    "compileWorklet": false,
+    "minified": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "enhance": false,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "compileType": "miniprogram",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "editorSetting": {}
 }

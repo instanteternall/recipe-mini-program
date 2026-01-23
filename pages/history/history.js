@@ -34,17 +34,22 @@ Page({
   // 分组历史记录
   groupHistory: function (history, groupBy) {
     if (groupBy === 'none') {
-      return history.map(item => ({ 
-        keyword: item, 
-        timestamp: Date.now() - Math.random() * 86400000 * 7 // 模拟时间戳
-      }));
+      return history.map(item => { 
+        const timestamp = Date.now() - Math.random() * 86400000 * 7; // 模拟时间戳
+        const date = new Date(timestamp);
+        return { 
+          keyword: item, 
+          timestamp,
+          dateStr: this.formatDate(date)
+        };
+      });
     }
     
     // 按日期分组（这里简化实现）
     const grouped = {};
     history.forEach((item, index) => {
       const mockDate = new Date(Date.now() - index * 86400000); // 每天一个
-      const dateKey = mockDate.toLocaleDateString();
+      const dateKey = this.formatDate(mockDate);
       
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
@@ -52,6 +57,7 @@ Page({
       grouped[dateKey].push({
         keyword: item,
         timestamp: mockDate.getTime(),
+        dateStr: this.formatDate(mockDate),
       });
     });
     
@@ -60,6 +66,14 @@ Page({
       date,
       items: grouped[date],
     }));
+  },
+
+  // 格式化日期
+  formatDate: function(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   },
 
   // 切换分组方式

@@ -9,8 +9,7 @@
   <!-- 分类导航 -->
   <view class="categories">
     <view class="category-item" wx:for="{{categories}}" wx:key="id" bindtap="goToCategory" data-id="{{item.id}}">
-      <image src="{{item.icon}}" mode="aspectFit" />
-      <text>{{item.name}}</text>
+      <text class="category-emoji">{{item.name}}</text>
     </view>
   </view>
 

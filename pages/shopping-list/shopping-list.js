@@ -10,6 +10,7 @@ Page({
     menuName: '',
     totalItems: 0,
     checkedCount: 0,
+    progressPercent: 0,
     groupByCategory: true,
     categories: [],
     searchQuery: '',

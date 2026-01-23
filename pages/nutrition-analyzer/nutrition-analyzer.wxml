@@ -65,7 +65,7 @@
           <view class="progress-bar">
             <view 
               class="progress-fill" 
-              style="width: {{(totalNutrition.calories / goals.calories * 100).toFixed(0)}}%"
+              style="width: {{caloriesProgress}}%"
             ></view>
           </view>
           <view class="nutrition-info">
@@ -79,7 +79,7 @@
           <view class="progress-bar">
             <view 
               class="progress-fill protein" 
-              style="width: {{(totalNutrition.protein / goals.protein * 100).toFixed(0)}}%"
+              style="width: {{proteinProgress}}%"
             ></view>
           </view>
           <view class="nutrition-info">
@@ -93,7 +93,7 @@
           <view class="progress-bar">
             <view 
               class="progress-fill carbs" 
-              style="width: {{(totalNutrition.carbs / goals.carbs * 100).toFixed(0)}}%"
+              style="width: {{carbsProgress}}%"
             ></view>
           </view>
           <view class="nutrition-info">
@@ -107,7 +107,7 @@
           <view class="progress-bar">
             <view 
               class="progress-fill fat" 
-              style="width: {{(totalNutrition.fat / goals.fat * 100).toFixed(0)}}%"
+              style="width: {{fatProgress}}%"
             ></view>
           </view>
           <view class="nutrition-info">

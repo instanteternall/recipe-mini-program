@@ -5,7 +5,7 @@
     <text class="menu-name">{{menuName}}</text>
     <text class="progress">已完成 {{checkedCount}}/{{totalItems}}</text>
     <view class="progress-bar">
-      <view class="progress-fill" style="width: {{(checkedCount/totalItems*100).toFixed(0)}}%"></view>
+      <view class="progress-fill" style="width: {{progressPercent}}%"></view>
     </view>
   </view>
 

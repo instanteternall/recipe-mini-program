@@ -1,89 +1,38 @@
-# 测试聚合数据API
+# 测试聚合数据API Key
 
-## 1. 测试环境变量
-创建 `.env` 文件：
-```
-JUHE_API_KEY=12be18fba59f76f071b14b23df49804c
-NODE_ENV=development
-PORT=3000
-```
-
-## 2. 启动服务器
+## 第一步：直接测试API Key
+在服务器上执行：
 ```bash
-cd backend
-npm install
-npm run dev
+curl "http://apis.juhe.cn/cook/query.php?key=12be18fba59f76f071b14b23df49804c&menu=鸡肉&rn=5"
 ```
 
-## 3. 测试API端点
+如果返回错误，说明：
+1. API Key无效
+2. 账户余额不足
+3. 请求频率超限
 
-### 测试精选菜谱
-```bash
-curl "http://localhost:3000/api/recipes/featured"
+## 第二步：检查账户状态
+访问 https://www.juhe.cn/ 登录账户，检查：
+- API Key是否正确
+- 账户余额
+- 调用次数统计
+
+## 第三步：如果API Key无效
+重新申请API Key：
+1. 登录聚合数据
+2. 进入菜谱API页面
+3. 重新申请免费试用
+
+## 第四步：临时使用其他API
+如果聚合数据有问题，我们可以：
+1. 使用天行数据API
+2. 使用百度API
+3. 使用模拟数据
+
+## 第五步：添加调试日志
+修改server.js添加调试：
+```javascript
+console.log('API Response:', response.data);
 ```
 
-### 测试搜索
-```bash
-curl "http://localhost:3000/api/recipes/search?query=鸡肉"
-```
-
-### 测试详情
-```bash
-curl "http://localhost:3000/api/recipes/1"
-```
-
-### 测试健康检查
-```bash
-curl "http://localhost:3000/health"
-```
-
-## 4. 预期响应
-
-### 精选菜谱响应示例
-```json
-{
-  "code": 0,
-  "data": [
-    {
-      "id": "random_id",
-      "title": "宫保鸡丁",
-      "image": "http://example.com/image.jpg",
-      "readyInMinutes": 30,
-      "servings": 2,
-      "ingredients": [
-        {"name": "鸡肉", "amount": "", "unit": "", "original": "鸡肉"},
-        {"name": "花生米", "amount": "", "unit": "", "original": "花生米"}
-      ],
-      "instructions": [
-        {"number": 1, "step": "步骤描述"}
-      ],
-      "nutrition": {
-        "calories": 0,
-        "protein": 0,
-        "carbs": 0,
-        "fat": 0,
-        "fiber": 0,
-        "sugar": 0,
-        "sodium": 0
-      },
-      "tags": ["川菜"],
-      "description": "菜谱简介"
-    }
-  ]
-}
-```
-
-## 5. 注意事项
-
-1. **营养数据**: 聚合数据不提供营养信息，使用估算值
-2. **图片质量**: 图片来源于用户上传，可能质量参差
-3. **数据完整性**: 部分菜谱可能缺少某些字段
-4. **搜索功能**: 通过关键词匹配，可能结果不如专用API精确
-
-## 6. 下一步
-
-API测试通过后，我们继续：
-1. 推送到GitHub
-2. Railway自动部署
-3. 配置小程序
-4. 正式上线
+告诉我直接API调用的结果，这样我们知道是API Key问题还是代码问题！

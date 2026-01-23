@@ -53,7 +53,7 @@
       >
         <view class="history-content" bindtap="searchHistoryItem" data-keyword="{{item.keyword}}">
           <text class="keyword">{{item.keyword}}</text>
-          <text class="timestamp">{{new Date(item.timestamp).toLocaleDateString()}}</text>
+          <text class="timestamp">{{item.dateStr}}</text>
         </view>
         <button class="btn-delete" bindtap="deleteHistoryItem" data-keyword="{{item.keyword}}">
           <icon type="cancel" size="16" color="#ff4757" />
