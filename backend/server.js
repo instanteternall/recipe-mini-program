@@ -77,7 +77,7 @@ app.get('/api/recipes/featured', async (req, res) => {
     const response = await axios.get(`${JUHE_BASE_URL}/query`, {
       params: {
         key: JUHE_API_KEY,
-        word: encodeURIComponent(randomKeyword),
+        word: randomKeyword, // 修复：不使用encodeURIComponent，让axios自动处理
         num: 6,
       },
       timeout: 15000,
@@ -117,7 +117,7 @@ app.get('/api/recipes/search', async (req, res) => {
     const response = await axios.get(`${JUHE_BASE_URL}/query`, {
       params: {
         key: JUHE_API_KEY,
-        word: encodeURIComponent(query.trim()),
+        word: query.trim(), // 修复：不使用encodeURIComponent，让axios自动处理
         num: 10,
       },
       timeout: 15000,
@@ -157,7 +157,7 @@ app.get('/api/recipes/:id', async (req, res) => {
     const response = await axios.get(`${JUHE_BASE_URL}/query`, {
       params: {
         key: JUHE_API_KEY,
-        word: id,
+        word: id, // 修复：不使用encodeURIComponent
         num: 1,
       },
       timeout: 15000,
