@@ -74,14 +74,9 @@ app.get('/api/recipes/featured', async (req, res) => {
     const popularKeywords = ['鸡肉', '牛肉', '猪肉', '蔬菜', '汤'];
     const randomKeyword = popularKeywords[Math.floor(Math.random() * popularKeywords.length)];
 
-    const response = await axios.get(`${JUHE_BASE_URL}/query`, {
-      params: {
-        key: JUHE_API_KEY,
-        word: randomKeyword, // 修复：不使用encodeURIComponent，让axios自动处理
-        num: 6,
-      },
-      timeout: 15000,
-    });
+    // 手动构建URL，确保正确的编码
+    const url = `${JUHE_BASE_URL}/query?key=${JUHE_API_KEY}&word=${encodeURIComponent(randomKeyword)}&num=6`;
+    const response = await axios.get(url, { timeout: 15000 });
 
     if (response.data.error_code !== 0) {
       throw new Error(response.data.reason || 'API request failed');
@@ -114,14 +109,9 @@ app.get('/api/recipes/search', async (req, res) => {
       });
     }
 
-    const response = await axios.get(`${JUHE_BASE_URL}/query`, {
-      params: {
-        key: JUHE_API_KEY,
-        word: query.trim(), // 修复：不使用encodeURIComponent，让axios自动处理
-        num: 10,
-      },
-      timeout: 15000,
-    });
+    // 手动构建URL，确保正确的编码
+    const url = `${JUHE_BASE_URL}/query?key=${JUHE_API_KEY}&word=${encodeURIComponent(query.trim())}&num=10`;
+    const response = await axios.get(url, { timeout: 15000 });
 
     if (response.data.error_code !== 0) {
       throw new Error(response.data.reason || 'API request failed');
@@ -154,14 +144,9 @@ app.get('/api/recipes/:id', async (req, res) => {
       });
     }
 
-    const response = await axios.get(`${JUHE_BASE_URL}/query`, {
-      params: {
-        key: JUHE_API_KEY,
-        word: id, // 修复：不使用encodeURIComponent
-        num: 1,
-      },
-      timeout: 15000,
-    });
+    // 手动构建URL，确保正确的编码
+    const url = `${JUHE_BASE_URL}/query?key=${JUHE_API_KEY}&word=${encodeURIComponent(id)}&num=1`;
+    const response = await axios.get(url, { timeout: 15000 });
 
     if (response.data.error_code !== 0 || !response.data.result.list.length) {
       throw new Error('菜谱不存在');
