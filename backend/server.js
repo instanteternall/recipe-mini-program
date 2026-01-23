@@ -15,9 +15,16 @@ app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// API Provider配置
+const API_PROVIDER = process.env.API_PROVIDER || 'themealdb'; // juhe 或 themealdb
+
 // 聚合数据API配置
 const JUHE_API_KEY = process.env.JUHE_API_KEY || '12be18fba59f76f071b14b23df49804c';
 const JUHE_BASE_URL = 'http://apis.juhe.cn/fapigx/caipu';
+
+// TheMealDB API配置
+const THEMEALDB_API_KEY = process.env.THEMEALDB_API_KEY || '1';
+const THEMEALDB_BASE_URL = 'https://www.themealdb.com/api/json/v1/1';
 
 // 转换聚合数据格式的函数
 function transformJuheRecipe(juheRecipe) {
@@ -57,33 +64,145 @@ function transformJuheRecipe(juheRecipe) {
   };
 }
 
+// 转换TheMealDB格式的函数
+function transformMealDBRecipe(meal) {
+  if (!meal) {
+    throw new Error('Invalid recipe data');
+  }
+
+  // 提取食材
+  const ingredients = [];
+  const measures = [];
+  for (let i = 1; i <= 20; i++) {
+    const ingredient = meal[`strIngredient${i}`];
+    const measure = meal[`strMeasure${i}`];
+    if (ingredient && ingredient.trim()) {
+      ingredients.push({
+        name: ingredient.trim(),
+        amount: measure ? measure.trim() : '',
+        unit: '',
+        original: measure ? `${measure.trim()} ${ingredient.trim()}` : ingredient.trim(),
+      });
+    }
+  }
+
+  // 提取步骤
+  const instructions = meal.strInstructions
+    ? meal.strInstructions.split(/(?=\d+\.)/).map(step => step.trim()).filter(step => step)
+    : [];
+
+  return {
+    id: meal.idMeal || Math.random().toString(36).substr(2, 9),
+    title: meal.strMeal || '',
+    image: meal.strMealThumb || '',
+    readyInMinutes: 30,
+    servings: 2,
+    ingredients: ingredients,
+    instructions: instructions.map((step, index) => ({
+      number: index + 1,
+      step: step.replace(/^\d+\.\s*/, ''),
+    })),
+    nutrition: {
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      fiber: 0,
+      sugar: 0,
+      sodium: 0,
+    },
+    tags: meal.strArea ? [meal.strArea] : [],
+    description: meal.strCategory || '',
+  };
+}
+
+// 统一的API搜索函数
+async function searchRecipes(query, limit = 10) {
+  if (API_PROVIDER === 'themealdb') {
+    // 使用TheMealDB API
+    const response = await axios.get(`${THEMEALDB_BASE_URL}/search.php?s=${encodeURIComponent(query)}`);
+    if (!response.data.meals) {
+      return [];
+    }
+    return response.data.meals.slice(0, limit).map(transformMealDBRecipe);
+  } else {
+    // 使用聚合数据API
+    const url = `${JUHE_BASE_URL}/query?key=${JUHE_API_KEY}&word=${encodeURIComponent(query)}&num=${limit}`;
+    const response = await axios.get(url, { timeout: 15000 });
+    if (response.data.error_code !== 0) {
+      throw new Error(response.data.reason || 'API request failed');
+    }
+    return response.data.result.list.slice(0, limit).map(transformJuheRecipe);
+  }
+}
+
+// 统一的获取菜谱详情函数
+async function getRecipeById(id) {
+  if (API_PROVIDER === 'themealdb') {
+    // 使用TheMealDB API
+    const response = await axios.get(`${THEMEALDB_BASE_URL}/lookup.php?i=${encodeURIComponent(id)}`);
+    if (!response.data.meals || !response.data.meals[0]) {
+      throw new Error('菜谱不存在');
+    }
+    return transformMealDBRecipe(response.data.meals[0]);
+  } else {
+    // 使用聚合数据API
+    const url = `${JUHE_BASE_URL}/query?key=${JUHE_API_KEY}&word=${encodeURIComponent(id)}&num=1`;
+    const response = await axios.get(url, { timeout: 15000 });
+    if (response.data.error_code !== 0 || !response.data.result.list.length) {
+      throw new Error('菜谱不存在');
+    }
+    return transformJuheRecipe(response.data.result.list[0]);
+  }
+}
+
+// 统一的获取随机菜谱函数
+async function getRandomRecipes(limit = 6) {
+  if (API_PROVIDER === 'themealdb') {
+    // 使用TheMealDB API - 获取多个随机菜谱
+    const recipes = [];
+    for (let i = 0; i < limit; i++) {
+      const response = await axios.get(`${THEMEALDB_BASE_URL}/random.php`);
+      if (response.data.meals && response.data.meals[0]) {
+        recipes.push(transformMealDBRecipe(response.data.meals[0]));
+      }
+    }
+    return recipes;
+  } else {
+    // 使用聚合数据API
+    const popularKeywords = ['鸡肉', '牛肉', '猪肉', '蔬菜', '汤'];
+    const randomKeyword = popularKeywords[Math.floor(Math.random() * popularKeywords.length)];
+    const url = `${JUHE_BASE_URL}/query?key=${JUHE_API_KEY}&word=${encodeURIComponent(randomKeyword)}&num=${limit}`;
+    const response = await axios.get(url, { timeout: 15000 });
+    if (response.data.error_code !== 0) {
+      throw new Error(response.data.reason || 'API request failed');
+    }
+    return response.data.result.list.slice(0, limit).map(transformJuheRecipe);
+  }
+}
+
 // 健康检查
 app.get('/health', (req, res) => {
+  const apiProviderName = API_PROVIDER === 'themealdb'
+    ? 'TheMealDB (免费无限制)'
+    : 'JuHe Data (聚合数据)';
+
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    api_provider: 'Juhe Data (聚合数据)',
-    api_key_loaded: !!process.env.JUHE_API_KEY,
+    api_provider: apiProviderName,
+    api_provider_code: API_PROVIDER,
+    api_key_loaded: API_PROVIDER === 'themealdb'
+      ? !!process.env.THEMEALDB_API_KEY
+      : !!process.env.JUHE_API_KEY,
   });
 });
 
 // 获取精选菜谱
 app.get('/api/recipes/featured', async (req, res) => {
   try {
-    const popularKeywords = ['鸡肉', '牛肉', '猪肉', '蔬菜', '汤'];
-    const randomKeyword = popularKeywords[Math.floor(Math.random() * popularKeywords.length)];
-
-    // 手动构建URL，确保正确的编码
-    const url = `${JUHE_BASE_URL}/query?key=${JUHE_API_KEY}&word=${encodeURIComponent(randomKeyword)}&num=6`;
-    const response = await axios.get(url, { timeout: 15000 });
-
-    if (response.data.error_code !== 0) {
-      throw new Error(response.data.reason || 'API request failed');
-    }
-
-    const recipes = response.data.result.list.slice(0, 6).map(transformJuheRecipe);
-
+    const recipes = await getRandomRecipes(6);
     res.json({
       code: 0,
       data: recipes,
@@ -109,15 +228,7 @@ app.get('/api/recipes/search', async (req, res) => {
       });
     }
 
-    // 手动构建URL，确保正确的编码
-    const url = `${JUHE_BASE_URL}/query?key=${JUHE_API_KEY}&word=${encodeURIComponent(query.trim())}&num=10`;
-    const response = await axios.get(url, { timeout: 15000 });
-
-    if (response.data.error_code !== 0) {
-      throw new Error(response.data.reason || 'API request failed');
-    }
-
-    const recipes = response.data.result.list.map(transformJuheRecipe);
+    const recipes = await searchRecipes(query.trim(), 10);
 
     res.json({
       code: 0,
@@ -144,15 +255,7 @@ app.get('/api/recipes/:id', async (req, res) => {
       });
     }
 
-    // 手动构建URL，确保正确的编码
-    const url = `${JUHE_BASE_URL}/query?key=${JUHE_API_KEY}&word=${encodeURIComponent(id)}&num=1`;
-    const response = await axios.get(url, { timeout: 15000 });
-
-    if (response.data.error_code !== 0 || !response.data.result.list.length) {
-      throw new Error('菜谱不存在');
-    }
-
-    const recipe = transformJuheRecipe(response.data.result.list[0]);
+    const recipe = await getRecipeById(id);
 
     res.json({
       code: 0,
@@ -251,11 +354,15 @@ app.use((req, res) => {
 
 // 启动服务器
 app.listen(PORT, () => {
+  const apiProviderName = API_PROVIDER === 'themealdb'
+    ? 'TheMealDB (免费无限制)'
+    : 'JuHe Data (聚合数据)';
+
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
-  console.log(`🍽️ API Provider: Juhe Data (聚合数据)`);
-  console.log(`🔑 API Key loaded: ${!!process.env.JUHE_API_KEY}`);
+  console.log(`🍽️ API Provider: ${apiProviderName}`);
+  console.log(`🔑 API Key loaded: ${API_PROVIDER === 'themealdb' ? !!process.env.THEMEALDB_API_KEY : !!process.env.JUHE_API_KEY}`);
 });
 
 module.exports = app;
