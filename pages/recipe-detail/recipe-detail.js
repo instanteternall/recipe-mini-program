@@ -30,7 +30,7 @@ Page({
 
   onShow: function () {
     // 刷新收藏状态
-    this.checkIfFavorite(this.data.recipe?.id);
+    this.checkIfFavorite(this.data.recipe && this.data.recipe.id);
   },
 
   // 加载菜谱详情
@@ -204,8 +204,8 @@ Page({
     const { recipe } = this.data;
     return {
       title: recipe ? recipe.title : '美味菜谱',
-      path: `/pages/recipe-detail/recipe-detail?id=${recipe?.id}`,
-      imageUrl: recipe?.image,
+      path: recipe ? `/pages/recipe-detail/recipe-detail?id=${recipe.id}` : '/pages/recipe-detail/recipe-detail',
+      imageUrl: recipe && recipe.image,
     };
   },
 });

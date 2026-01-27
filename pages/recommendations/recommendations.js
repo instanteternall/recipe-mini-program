@@ -279,7 +279,8 @@ Page({
 
   // 页面分享
   onShareAppMessage: function () {
-    const categoryName = this.data.categories.find(c => c.id === this.data.activeCategory)?.name || '推荐';
+    const category = this.data.categories.find(c => c.id === this.data.activeCategory);
+    const categoryName = category && category.name || '推荐';
     return {
       title: `${categoryName}菜谱推荐`,
       path: `/pages/recommendations/recommendations?category=${this.data.activeCategory}`,

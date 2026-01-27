@@ -1,5 +1,5 @@
-// utils/api.js - 更新后的API配置
-const BASE_URL = 'http://121.199.164.252:3000/api';
+// 将HTTP改为HTTP（暂时使用HTTP，后续可升级为HTTPS）
+const BASE_URL = 'http://121.199.164.252/api';
 
 // 请求封装
 function request(url, method = 'GET', data = {}, header = {}) {

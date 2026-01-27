@@ -71,8 +71,8 @@ Page({
           bValue = b.title.toLowerCase();
           break;
         case 'calories':
-          aValue = a.nutrition?.calories || 0;
-          bValue = b.nutrition?.calories || 0;
+          aValue = a.nutrition && a.nutrition.calories || 0;
+          bValue = b.nutrition && b.nutrition.calories || 0;
           break;
         case 'recent':
         default:
@@ -195,7 +195,7 @@ Page({
     const { filteredFavorites } = this.data;
     const exportData = filteredFavorites.map(recipe => ({
       title: recipe.title,
-      calories: recipe.nutrition?.calories || 0,
+      calories: (recipe.nutrition && recipe.nutrition.calories) || 0,
       time: recipe.readyInMinutes,
       servings: recipe.servings,
     }));
