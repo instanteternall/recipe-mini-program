@@ -8,18 +8,55 @@ require('dotenv').config(); // 加载环境变量
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// 简单基于 IP 的限流配置（内存实现）
+const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10); // 默认 1 分钟
+const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX || '60', 10); // 默认每分钟 60 次
+const ipRequestCounters = new Map();
+
+function rateLimiter(req, res, next) {
+  const now = Date.now();
+  const ip = req.ip || (req.connection && req.connection.remoteAddress) || 'unknown';
+
+  let entry = ipRequestCounters.get(ip);
+  if (!entry) {
+    entry = { count: 0, startTime: now };
+  }
+
+  // 窗口过期，重置计数
+  if (now - entry.startTime > RATE_LIMIT_WINDOW_MS) {
+    entry.count = 0;
+    entry.startTime = now;
+  }
+
+  entry.count += 1;
+  ipRequestCounters.set(ip, entry);
+
+  if (entry.count > RATE_LIMIT_MAX) {
+    return res.status(429).json({
+      code: 429,
+      message: '请求过于频繁，请稍后再试',
+    });
+  }
+
+  return next();
+}
+
 // 中间件
 app.use(helmet());
 app.use(cors());
 app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(rateLimiter);
 
 // API Provider配置
 const API_PROVIDER = process.env.API_PROVIDER || 'themealdb'; // juhe 或 themealdb
 
-// 聚合数据API配置 - 支持多账号轮换
-const JUHE_API_KEYS = (process.env.JUHE_API_KEYS || process.env.JUHE_API_KEY || '12be18fba59f76f071b14b23df49804c').split(',').map(k => k.trim());
+// 聚合数据API配置 - 支持多账号轮换（不再在代码中写死默认 Key）
+const JUHE_API_KEYS = (process.env.JUHE_API_KEYS || process.env.JUHE_API_KEY || '')
+  .split(',')
+  .map(k => k.trim())
+  .filter(Boolean);
 const JUHE_API_LIMIT = parseInt(process.env.JUHE_API_LIMIT || '50');
 const JUHE_BASE_URL = 'http://apis.juhe.cn/fapigx/caipu';
 
@@ -38,6 +75,10 @@ function initKeyUsage() {
 
 // 获取下一个可用的JuHe Key
 function getNextJuHeKey() {
+  if (!JUHE_API_KEYS.length) {
+    throw new Error('No JuHe API keys configured. Please set JUHE_API_KEYS or JUHE_API_KEY in environment variables.');
+  }
+
   initKeyUsage();
 
   // 找到未达上限的Key
@@ -70,31 +111,10 @@ const JUHE_API_KEY = JUHE_API_KEYS[0];
 const THEMEALDB_API_KEY = process.env.THEMEALDB_API_KEY || '1';
 const THEMEALDB_BASE_URL = 'https://www.themealdb.com/api/json/v1/1';
 
-// 转换聚合数据格式的函数
-function transformJuheRecipe(juheRecipe) {
-  if (!juheRecipe) {
-    throw new Error('Invalid recipe data');
-  }
-
-  return {
-    id: juheRecipe.id || Math.random().toString(36).substr(2, 9),
-    title: juheRecipe.cp_name || '',
-    image: '',
-    readyInMinutes: 30,
-    servings: 2,
-    ingredients: juheRecipe.yuanliao ?
-      juheRecipe.yuanliao.split(/[、,，]/).map(ing => ({
-        name: ing.trim(),
-        amount: '',
-        unit: '',
-        original: ing.trim(),
-      })) : [],
-    instructions: juheRecipe.zuofa ?
-      juheRecipe.zuofa.split(/\d+\。/).filter(step => step.trim()).map((step, index) => ({
-        number: index + 1,
-        step: step.trim(),
-      })) : [],
-    nutrition: {
+// 根据食材粗略估算营养（仅用于没有真实营养数据时的近似值）
+function estimateNutritionFromIngredients(ingredients = []) {
+  if (!ingredients.length) {
+    return {
       calories: 0,
       protein: 0,
       carbs: 0,
@@ -102,7 +122,88 @@ function transformJuheRecipe(juheRecipe) {
       fiber: 0,
       sugar: 0,
       sodium: 0,
-    },
+    };
+  }
+
+  const proteinKeywords = ['鸡', '牛', '猪', '羊', '鱼', '虾', '蛋', '肉', '豆腐', '鸡肉', '牛肉', 'pork', 'beef', 'chicken', 'egg', 'tofu'];
+  const carbKeywords = ['米', '面', '饭', '面包', '土豆', '薯', '米饭', '面条', 'rice', 'noodle', 'bread', 'potato', 'pasta'];
+  const fatKeywords = ['油', '奶油', '黄油', '芝士', '芝士', '花生', '坚果', 'cheese', 'butter', 'cream', 'bacon', 'oil'];
+  const sugarKeywords = ['糖', '蜂蜜', '果酱', '巧克力', 'honey', 'syrup', 'chocolate'];
+  const saltKeywords = ['盐', '酱油', '味精', '酱', 'sauce', 'soy'];
+  const vegKeywords = ['菜', '瓜', '椒', '葱', '蒜', '姜', '菠菜', '西兰花', '胡萝卜', '洋葱', 'tomato', 'onion', 'broccoli', 'carrot'];
+
+  let proteinScore = 0;
+  let carbScore = 0;
+  let fatScore = 0;
+  let sugarScore = 0;
+  let saltScore = 0;
+  let vegScore = 0;
+
+  ingredients.forEach((ing) => {
+    const name = (ing.name || ing.original || '').toLowerCase();
+    if (!name) return;
+
+    if (proteinKeywords.some((k) => name.includes(k))) proteinScore += 1;
+    if (carbKeywords.some((k) => name.includes(k))) carbScore += 1;
+    if (fatKeywords.some((k) => name.includes(k))) fatScore += 1;
+    if (sugarKeywords.some((k) => name.includes(k))) sugarScore += 1;
+    if (saltKeywords.some((k) => name.includes(k))) saltScore += 1;
+    if (vegKeywords.some((k) => name.includes(k))) vegScore += 1;
+  });
+
+  // 将“得分”粗略映射为克数
+  const protein = proteinScore * 8;
+  const carbs = carbScore * 15;
+  const fat = fatScore * 5;
+  const fiber = vegScore * 2;
+  const sugar = sugarScore * 4;
+  const sodium = saltScore * 300;
+
+  const macroCalories = protein * 4 + carbs * 4 + fat * 9;
+  const baseCalories = ingredients.length * 40;
+  const calories = Math.max(macroCalories, baseCalories);
+
+  return {
+    calories,
+    protein,
+    carbs,
+    fat,
+    fiber,
+    sugar,
+    sodium,
+  };
+}
+
+// 转换聚合数据格式的函数
+function transformJuheRecipe(juheRecipe) {
+  if (!juheRecipe) {
+    throw new Error('Invalid recipe data');
+  }
+
+  const ingredients = juheRecipe.yuanliao
+    ? juheRecipe.yuanliao.split(/[、,，]/).map(ing => ({
+      name: ing.trim(),
+      amount: '',
+      unit: '',
+      original: ing.trim(),
+    }))
+    : [];
+
+  const nutrition = estimateNutritionFromIngredients(ingredients);
+
+  return {
+    id: juheRecipe.id || Math.random().toString(36).substr(2, 9),
+    title: juheRecipe.cp_name || '',
+    image: '',
+    readyInMinutes: 30,
+    servings: 2,
+    ingredients,
+    instructions: juheRecipe.zuofa ?
+      juheRecipe.zuofa.split(/\d+\。/).filter(step => step.trim()).map((step, index) => ({
+        number: index + 1,
+        step: step.trim(),
+      })) : [],
+    nutrition,
     tags: juheRecipe.type_name ? [juheRecipe.type_name] : [],
     description: juheRecipe.texing || juheRecipe.tishi || '',
   };
@@ -135,6 +236,8 @@ function transformMealDBRecipe(meal) {
     ? meal.strInstructions.split(/(?=\d+\.)/).map(step => step.trim()).filter(step => step)
     : [];
 
+  const nutrition = estimateNutritionFromIngredients(ingredients);
+
   return {
     id: meal.idMeal || Math.random().toString(36).substr(2, 9),
     title: meal.strMeal || '',
@@ -146,15 +249,7 @@ function transformMealDBRecipe(meal) {
       number: index + 1,
       step: step.replace(/^\d+\.\s*/, ''),
     })),
-    nutrition: {
-      calories: 0,
-      protein: 0,
-      carbs: 0,
-      fat: 0,
-      fiber: 0,
-      sugar: 0,
-      sodium: 0,
-    },
+    nutrition,
     tags: meal.strArea ? [meal.strArea] : [],
     description: meal.strCategory || '',
   };
@@ -255,8 +350,8 @@ app.get('/health', (req, res) => {
     api_provider: apiProviderName,
     api_provider_code: API_PROVIDER,
     api_key_loaded: API_PROVIDER === 'themealdb'
-      ? !!process.env.THEMEALDB_API_KEY
-      : !!process.env.JUHE_API_KEY,
+      ? true // 使用 TheMealDB 免费公开 key（/v1/1），无需额外配置
+      : !!(process.env.JUHE_API_KEYS || process.env.JUHE_API_KEY),
   });
 });
 
@@ -280,7 +375,7 @@ app.get('/api/recipes/featured', async (req, res) => {
 // 搜索菜谱
 app.get('/api/recipes/search', async (req, res) => {
   try {
-    const { query } = req.query;
+    const { query, number, page, pageSize } = req.query;
 
     if (!query || query.trim().length < 1) {
       return res.status(400).json({
@@ -289,11 +384,17 @@ app.get('/api/recipes/search', async (req, res) => {
       });
     }
 
-    const recipes = await searchRecipes(query.trim(), 10);
+    const pageNum = parseInt(page, 10) || 1;
+    const size = parseInt(pageSize, 10) || parseInt(number, 10) || 10;
+    const limit = pageNum * size;
+
+    const allRecipes = await searchRecipes(query.trim(), limit);
+    const startIndex = (pageNum - 1) * size;
+    const pagedRecipes = allRecipes.slice(startIndex, startIndex + size);
 
     res.json({
       code: 0,
-      data: recipes,
+      data: pagedRecipes,
     });
   } catch (error) {
     console.error('Search recipes failed:', error.message);
@@ -343,16 +444,44 @@ app.post('/api/nutrition/analyze', async (req, res) => {
       });
     }
 
-    // 估算营养信息
-    const totalNutrition = {
-      calories: recipeIds.length * 280,
-      protein: recipeIds.length * 25,
-      carbs: recipeIds.length * 30,
-      fat: recipeIds.length * 12,
-      fiber: recipeIds.length * 3,
-      sugar: recipeIds.length * 5,
-      sodium: recipeIds.length * 800,
-    };
+    // 拉取每道菜谱的营养信息并汇总（使用 transform 中的估算结果）
+    const recipes = await Promise.all(
+      recipeIds.map(id =>
+        getRecipeById(id).catch(() => null),
+      ),
+    );
+
+    const validRecipes = recipes.filter(Boolean);
+
+    if (validRecipes.length === 0) {
+      return res.status(404).json({
+        code: 404,
+        message: '未找到任何有效菜谱，无法进行营养分析',
+      });
+    }
+
+    const totalNutrition = validRecipes.reduce(
+      (totals, recipe) => {
+        const n = recipe.nutrition || {};
+        totals.calories += n.calories || 0;
+        totals.protein += n.protein || 0;
+        totals.carbs += n.carbs || 0;
+        totals.fat += n.fat || 0;
+        totals.fiber += n.fiber || 0;
+        totals.sugar += n.sugar || 0;
+        totals.sodium += n.sodium || 0;
+        return totals;
+      },
+      {
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        fiber: 0,
+        sugar: 0,
+        sodium: 0,
+      },
+    );
 
     res.json({
       code: 0,

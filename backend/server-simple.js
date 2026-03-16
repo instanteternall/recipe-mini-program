@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -14,8 +16,8 @@ app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 聚合数据API配置
-const JUHE_API_KEY = '12be18fba59f76f071b14b23df49804c';
+// 聚合数据API配置（从环境变量读取）
+const JUHE_API_KEY = process.env.API_KEY;
 const JUHE_BASE_URL = 'http://apis.juhe.cn/fapigx/caipu';
 
 // 转换聚合数据格式的函数

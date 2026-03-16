@@ -1,4 +1,5 @@
 // utils/auth.js - 微信授权相关
+const { BASE_URL } = require('./api');
 function login() {
   return new Promise((resolve, reject) => {
     wx.login({
@@ -6,7 +7,7 @@ function login() {
         if (res.code) {
           // 将code发送到后端换取openid
           wx.request({
-            url: 'https://your-backend.com/api/auth/login',
+            url: BASE_URL + '/auth/login',
             method: 'POST',
             data: { code: res.code },
             success: (response) => {

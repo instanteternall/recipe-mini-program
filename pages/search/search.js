@@ -1,5 +1,6 @@
 // pages/search/search.js
 const app = getApp();
+const api = require('../../utils/api');
 
 Page({
   data: {
@@ -47,30 +48,21 @@ Page({
     // 保存到搜索历史
     this.saveSearchHistory(keyword);
 
-    wx.request({
-      url: 'http://121.199.164.252:3000/api/recipes/search',
-      method: 'GET',
-      data: {
-        query: keyword,
-        page: this.data.page,
-        pageSize: this.data.pageSize,
-      },
-      success: (res) => {
-        if (res.data.code === 0) {
-          this.setData({
-            searchResults: res.data.data,
-            loading: false,
-          });
-        } else {
-          wx.showToast({ title: '搜索失败', icon: 'none' });
-          this.setData({ loading: false });
-        }
-      },
-      fail: () => {
-        wx.showToast({ title: '网络错误', icon: 'none' });
+    api.searchRecipes({
+      query: keyword,
+      page: this.data.page,
+      pageSize: this.data.pageSize,
+    })
+      .then((response) => {
+        this.setData({
+          searchResults: response.data,
+          loading: false,
+        });
+      })
+      .catch(() => {
+        wx.showToast({ title: '搜索失败', icon: 'none' });
         this.setData({ loading: false });
-      },
-    });
+      });
   },
 
   // 加载更多结果
@@ -80,30 +72,26 @@ Page({
     this.setData({ loading: true });
     const nextPage = this.data.page + 1;
 
-    wx.request({
-      url: 'http://121.199.164.252:3000/api/recipes/search',
-      method: 'GET',
-      data: {
-        query: this.data.keyword,
-        page: nextPage,
-        pageSize: this.data.pageSize,
-      },
-      success: (res) => {
-        if (res.data.code === 0 && res.data.data.length > 0) {
+    api.searchRecipes({
+      query: this.data.keyword,
+      page: nextPage,
+      pageSize: this.data.pageSize,
+    })
+      .then((response) => {
+        if (response.data && response.data.length > 0) {
           this.setData({
-            searchResults: [...this.data.searchResults, ...res.data.data],
+            searchResults: [...this.data.searchResults, ...response.data],
             page: nextPage,
             loading: false,
           });
         } else {
           this.setData({ hasMore: false, loading: false });
         }
-      },
-      fail: () => {
+      })
+      .catch(() => {
         wx.showToast({ title: '网络错误', icon: 'none' });
         this.setData({ loading: false });
-      },
-    });
+      });
   },
 
   // 点击热门关键词

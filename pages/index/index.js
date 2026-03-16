@@ -1,5 +1,6 @@
 // pages/index/index.js
 const app = getApp();
+const api = require('../../utils/api');
 
 Page({
   data: {
@@ -26,26 +27,20 @@ Page({
   loadFeaturedRecipes: function () {
     wx.showLoading({ title: '加载中...' });
     
-    wx.request({
-      url: 'http://121.199.164.252:3000/api/recipes/featured',
-      method: 'GET',
-      success: (res) => {
-        if (res.data.code === 0) {
-          this.setData({
-            featuredRecipes: res.data.data,
-            loading: false,
-          });
-        } else {
-          wx.showToast({ title: '加载失败', icon: 'none' });
-        }
-      },
-      fail: () => {
-        wx.showToast({ title: '网络错误', icon: 'none' });
-      },
-      complete: () => {
+    api.getFeaturedRecipes()
+      .then((response) => {
+        // request 已经对 code 做了基础校验，这里主要处理数据
+        this.setData({
+          featuredRecipes: response.data,
+          loading: false,
+        });
+      })
+      .catch(() => {
+        wx.showToast({ title: '加载失败', icon: 'none' });
+      })
+      .finally(() => {
         wx.hideLoading();
-      },
-    });
+      });
   },
 
   // 跳转到搜索页面

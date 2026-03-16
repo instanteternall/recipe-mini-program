@@ -50,13 +50,27 @@ function formatNutritionValue(value, unit = '') {
 }
 
 function analyzeMealBalance(nutrition) {
-  // 分析餐食营养平衡
+  // 如果没有有效的营养数据，返回默认分析，避免出现 NaN / Infinity
+  if (!nutrition || !nutrition.calories || nutrition.calories <= 0) {
+    return {
+      analysis: {
+        calorieLevel: 'neutral',
+        proteinRatio: 0,
+        carbRatio: 0,
+        fatRatio: 0,
+        fiberAdequate: false,
+      },
+      recommendations: ['当前菜谱未提供详细的营养数据，结果仅供参考'],
+    };
+  }
+
+  // 分析餐食营养平衡（带容错）
   const analysis = {
     calorieLevel: getNutritionColor(nutrition.calories, 'calories'),
-    proteinRatio: (nutrition.protein * 4) / nutrition.calories, // 蛋白质卡路里占比
-    carbRatio: (nutrition.carbs * 4) / nutrition.calories,
-    fatRatio: (nutrition.fat * 9) / nutrition.calories,
-    fiberAdequate: nutrition.fiber >= 5, // 膳食纤维是否充足
+    proteinRatio: ((nutrition.protein || 0) * 4) / nutrition.calories, // 蛋白质卡路里占比
+    carbRatio: ((nutrition.carbs || 0) * 4) / nutrition.calories,
+    fatRatio: ((nutrition.fat || 0) * 9) / nutrition.calories,
+    fiberAdequate: (nutrition.fiber || 0) >= 5, // 膳食纤维是否充足
   };
 
   // 健康建议

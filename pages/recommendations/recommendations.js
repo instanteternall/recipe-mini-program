@@ -1,6 +1,7 @@
 // pages/recommendations/recommendations.js
 const app = getApp();
 const storage = require('../../utils/storage');
+const api = require('../../utils/api');
 
 Page({
   data: {
@@ -84,29 +85,14 @@ Page({
 
   // 获取热门推荐
   async getPopularRecommendations() {
-    // 这里应该调用后端API获取热门菜谱
-    // 暂时使用模拟数据
-    return [
-      {
-        id: '1',
-        title: '宫保鸡丁',
-        image: 'https://example.com/recipe1.jpg',
-        readyInMinutes: 25,
-        nutrition: { calories: 320 },
-        tags: ['川菜', '经典'],
-        reason: '本周最受欢迎的菜谱',
-      },
-      {
-        id: '2',
-        title: '西红柿炒蛋',
-        image: 'https://example.com/recipe2.jpg',
-        readyInMinutes: 15,
-        nutrition: { calories: 180 },
-        tags: ['家常菜', '简单'],
-        reason: '新手友好，人气爆棚',
-      },
-      // 更多推荐...
-    ];
+    // 使用后端精选菜谱接口作为热门推荐数据源
+    const response = await api.getFeaturedRecipes();
+    const recipes = response.data || [];
+
+    return recipes.map((recipe) => ({
+      ...recipe,
+      reason: '根据热门菜谱推荐',
+    }));
   },
 
   // 获取个性化推荐
