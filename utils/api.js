@@ -1,6 +1,6 @@
 // 后端基础地址（可根据环境调整）
-// 当前与小程序中其它直接请求的地址保持一致
-const BASE_URL = 'http://121.199.164.252:3000/api';
+// Vercel部署的后端服务
+const BASE_URL = 'https://wodecaipu-server.vercel.app/api';
 
 // 请求封装
 function request(url, method = 'GET', data = {}, header = {}) {

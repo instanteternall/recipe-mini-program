@@ -27,12 +27,12 @@
 
 ### 后端
 - **框架**：Node.js + Express
-- **数据源**：Spoonacular API
+- **数据源**：TheMealDB API（免费无限制）/ 聚合数据API
 - **缓存**：内存缓存
-- **部署**：云服务器
+- **部署**：Vercel云平台
 
 ### 数据存储
-- **菜谱数据**：Spoonacular API
+- **菜谱数据**：TheMealDB API（免费无限制）/ 聚合数据API
 - **用户数据**：微信授权 + 本地存储
 - **菜单数据**：本地存储 + 云同步
 
@@ -73,9 +73,9 @@ recipe-mini-program/
 ## 开发指南
 
 ### 环境要求
-- Node.js >= 16.0.0
+- Node.js >= 24.0.0
 - 微信开发者工具
-- Spoonacular API Key
+- 聚合数据API Key（可选，使用聚合数据时需要）
 
 ### 安装依赖
 ```bash
@@ -86,9 +86,18 @@ npm install
 ### 配置环境变量
 创建 `.env` 文件：
 ```
-SPOONACULAR_API_KEY=your_api_key_here
+# API Provider (themealdb 或 juhe)
+API_PROVIDER=themealdb
+
+# 聚合数据API配置（使用聚合数据时需要）
+JUHE_API_KEYS=your_juhe_api_key1,your_juhe_api_key2
+JUHE_API_LIMIT=50
+
+# 微信配置（可选）
 WECHAT_APPID=your_appid
 WECHAT_SECRET=your_secret
+
+# 服务器配置
 PORT=3000
 ```
 
@@ -118,10 +127,17 @@ npm run dev
 
 ## 部署说明
 
-### 后端部署
+### 后端部署（Vercel）
+1. 推送代码到GitHub仓库
+2. 登录Vercel官网，连接GitHub仓库
+3. 配置环境变量（如果使用聚合数据API）
+4. 点击"Deploy"按钮部署
+5. 部署成功后获取域名
+
+### 本地开发
 ```bash
-npm run build
-npm start
+cd backend
+npm run dev
 ```
 
 ### 小程序发布
@@ -129,6 +145,12 @@ npm start
 2. 登录微信公众平台
 3. 提交审核
 4. 发布上线
+
+### 微信小程序域名配置
+1. 登录微信公众平台
+2. 进入"开发" -> "开发设置"
+3. 在"服务器域名"中添加Vercel部署的域名
+4. 保存配置
 
 ## 许可证
 
